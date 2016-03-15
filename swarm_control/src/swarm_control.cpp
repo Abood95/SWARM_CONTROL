@@ -1,6 +1,7 @@
 #include "swarm_control.h"
 #include<time.h>
 #include<math.h>
+#include<cstdlib>
 
 //ExampleRosClass::ExampleRosClass(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 
@@ -130,7 +131,7 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 	int Num = 200;
 	int c1 = 1.1;
 	int c2 = 1.1;
-	int Miter = 300;
+	int Miter = 50;
 	double w = 0.7298;
 
 	double obst_radius = 2;
@@ -156,7 +157,7 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 	target.pose.position.x = target_x;
 	target.pose.position.y = target_y;
 
-	srand((int) time(0));
+	 srand((unsigned)time( NULL ));
 
 	std::vector<geometry_msgs::PoseStamped> particle_pose;
 	std::vector<geometry_msgs::PoseStamped> velocity;
@@ -172,16 +173,18 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 	double dy;
 	double temp_evalu;
 
+	int N=999;
+
 	for (int i = 0; i < Num; i++) {
 		//careful
 		temp.pose.position.x = x_start
-				+ (obst_x - x_start) * rand(1) * cos(psi);
+				+ (obst_x - x_start) * (rand()%(N+1)/(float)(N+1)) * cos(psi);
 		temp.pose.position.y = y_start - y_range * cos(psi)
-				+ (y_start + y_range * cos(psi)) * rand(1);
+				+ (y_start + y_range * cos(psi)) * (rand()%(N+1)/(float)(N+1));
 
-		vel.pose.position.x = x_start + (obst_x - x_start) * rand(1) * cos(psi);
+		vel.pose.position.x = x_start + (obst_x - x_start) * (rand()%(N+1)/(float)(N+1)) * cos(psi);
 		vel.pose.position.y = y_start - y_range * cos(psi)
-				+ (y_start + y_range * cos(psi)) * rand(1);
+				+ (y_start + y_range * cos(psi)) * (rand()%(N+1)/(float)(N+1));
 		//screen
 		dx = temp.pose.position.x - obst_x;
 		dy = temp.pose.position.y - obst_y;
@@ -201,7 +204,6 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 	int valid_num = particle_pose.size();
 
 	geometry_msgs::PoseStamped global_best;
-	//geometry_msgs::PoseStamped local_best;
 
 	global_best.pose.position.x = particle_pose[0].pose.position.x;
 	global_best.pose.position.y = particle_pose[0].pose.position.y;
@@ -216,21 +218,21 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 
 	////main iteration
 	vec_of_states.clear();
-
+    int counter = 0;
 	for (int iter = 1; iter < Miter; iter++) {
 		for (int n = 0; n < valid_num; n++) {
 			velocity[n].pose.position.x = w * velocity[n].pose.position.x
-					+ c1 * rand(1)
+					+ c1 * (rand()%(N+1)/(float)(N+1))
 							* (local_pose[n].pose.position.x
 									- particle_pose[n].pose.position.x)
-					+ c2 * rand
+					+ c2 * (rand()%(N+1)/(float)(N+1))
 							* (global_best.pose.position.x
 									- particle_pose[n].pose.position.x);
 			velocity[n].pose.position.y = w * velocity[n].pose.position.y
-					+ c1 * rand(1)
+					+ c1 * (rand()%(N+1)/(float)(N+1))
 							* (local_pose[n].pose.position.y
 									- particle_pose[n].pose.position.y)
-					+ c2 * rand
+					+ c2 * (rand()%(N+1)/(float)(N+1))
 							* (global_best.pose.position.y
 									- particle_pose[n].pose.position.y);
 			particle_pose[n].pose.position.x = particle_pose[n].pose.position.x
@@ -256,9 +258,11 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 			}
 		}
 
-		vec_of_states.pushback(global_best);
+        counter +=1;
+        if(counter > 10){
+		   vec_of_states.pushback(global_best);
+		   counter =0;
+        }
 	}
-
 	vec_of_states.pushback(target.pose);
-
 }
