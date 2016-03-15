@@ -396,3 +396,20 @@ void TrajBuilder::build_point_and_go_traj(geometry_msgs::PoseStamped start_pose,
 	ROS_INFO("building translational trajectory");
 	build_travel_traj(bridge_pose, end_pose, vec_of_states);
 }
+
+double TrajBuilder::ComputeEvaluation(geometry_msgs::PoseStamped target_posi, geometry_msgs::PoseStamped obst_posi, geometry_msgs::PoseStamped robot_posi){
+	   double w1 = 0.7;
+	   double w2 = 0.3;
+
+	   double tar_dx = robot_posi.pose.position.x - target_posi.pose.position.x;
+	   double tar_dy = robot_posi.pose.position.y - target_posi.pose.position.y;
+	   double tar_dist = sqrt(tar_dx * tar_dx + tar_dy * tar_dy);
+
+	   double obs_dx = robot_posi.pose.position.x - obst_posi.pose.position.x;
+	   double obs_dy = robot_posi.pose.position.y - obst_posi.pose.position.y;
+	   double obs_dist = sqrt(obs_dx * obs_dx + obs_dy * obs_dy);
+
+	   double evaluation = w1/obs_dist + w2*tar_dist;
+
+	   return evaluation;
+}

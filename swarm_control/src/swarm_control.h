@@ -98,6 +98,13 @@ private:
     ros::Publisher desired_state_publisher_5;
     ros::Publisher desired_state_publisher_6;
 
+    ros::Publisher des_psi_publisher_1;
+    ros::Publisher des_psi_publisher_2;
+    ros::Publisher des_psi_publisher_3;
+    ros::Publisher des_psi_publisher_4;
+    ros::Publisher des_psi_publisher_5;
+    ros::Publisher des_psi_publisher_6;
+
 
     TrajBuilder trajBuilder_; 
 
@@ -115,7 +122,10 @@ public:
     bool alarm6;
 
     void set_init_pose(double x,double y, double psi);
-    void pub_next_state();  
+
+    void swarm_1_obstacles_state(double dist_obst, geometry_msgs::PoseStamped pose, std::vector<nav_msgs::Odometry> &vec_of_states);
+    void swarm_pub_next_state();
+
     void append_path_queue(geometry_msgs::PoseStamped pose) { path_queue_.push(pose); }  
     void append_path_queue(double x, double y, double psi) 
         { path_queue_.push(trajBuilder_.xyPsi2PoseStamped(x,y,psi)); }
