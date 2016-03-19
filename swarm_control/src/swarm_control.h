@@ -8,6 +8,7 @@
 #include "trajectory_plan.h"
 #include <swarm_control/path.h>
 #include <std_msgs/Float64.h>
+#include<math.h>
 
 
 const double dt = 0.02; //send desired-state messages at fixed rate, e.g. 0.02 sec = 50Hz
@@ -18,6 +19,9 @@ const double speed_max = 1.0; //1 m/sec
 const double omega_max = 1.0; //1 rad/sec
 const double path_move_tol = 0.01; // if path points are within 1cm, fuggidaboutit
 
+const double dange_range_1 = M_PI/4;
+const double dange_range_2 = M_PI/8;  //may need to  be tuned!!!!!!!!!
+
 class SwarmControl{
 private:
  ros::NodeHandle nh_;
@@ -27,6 +31,9 @@ private:
     double speed_max_; 
     double omega_max_; 
     double path_move_tol_; 
+
+    double range_1;
+    double range_2;
 
 
     std::vector<nav_msgs::Odometry> des_state_vec_1;
@@ -121,9 +128,13 @@ public:
     bool alarm5;
     bool alarm6;
 
+
     void set_init_pose(double x,double y, double psi);
 
-    void swarm_1_obstacles_state(double dist_obst, geometry_msgs::PoseStamped pose, std::vector<nav_msgs::Odometry> &vec_of_states);
+	void swarm_obstacles_state(geometry_msgs::PoseStamped obst_posi,
+			geometry_msgs::PoseStamped pose,
+			geometry_msgs::PoseStamped target_posi,
+			std::vector<nav_msgs::Odometry> &vec_of_states);
     void swarm_pub_next_state();
 
     void append_path_queue(geometry_msgs::PoseStamped pose) { path_queue_.push(pose); }  

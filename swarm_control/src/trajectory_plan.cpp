@@ -413,3 +413,27 @@ double TrajBuilder::ComputeEvaluation(geometry_msgs::PoseStamped target_posi, ge
 
 	   return evaluation;
 }
+
+void ComputeSubpositions(geometry_msgs::PoseStamped swarm1_posi,
+		geometry_msgs::PoseStamped &swarm2_posi,
+		geometry_msgs::PoseStamped &swarm3_posi,
+		geometry_msgs::PoseStamped &swarm4_posi,
+		geometry_msgs::PoseStamped &swarm5_posi,
+		geometry_msgs::PoseStamped &swarm6_posi,
+		){
+	//please check if the coordinate is right
+	swarm2_posi.pose.position.x = swarm1_posi.pose.position.x - 1;
+	swarm2_posi.pose.position.y = swarm1_posi.pose.position.y + sqrt(3);
+
+	swarm3_posi.pose.position.x = swarm1_posi.pose.position.x - 3;
+	swarm3_posi.pose.position.y = swarm1_posi.pose.position.y + sqrt(3);
+
+	swarm4_posi.pose.position.x = swarm1_posi.pose.position.x - 1;
+	swarm4_posi.pose.position.y = swarm1_posi.pose.position.y - sqrt(3);
+
+	swarm5_posi.pose.position.x = swarm1_posi.pose.position.x - 3;
+	swarm5_posi.pose.position.y = swarm1_posi.pose.position.y - sqrt(3);
+
+	swarm6_posi.pose.position.x = swarm1_posi.pose.position.x - 4;
+	swarm6_posi.pose.position.y = swarm1_posi.pose.position.y;
+}

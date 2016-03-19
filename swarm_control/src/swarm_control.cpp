@@ -1,8 +1,8 @@
 #include "swarm_control.h"
 #include<time.h>
-#include<math.h>
 #include<cstdlib>
 
+using namespace std;
 //ExampleRosClass::ExampleRosClass(ros::NodeHandle* nodehandle):nh_(*nodehandle)
 
 SwarmControl::SwarmControl(ros::NodeHandle& nh) :
@@ -24,6 +24,9 @@ SwarmControl::SwarmControl(ros::NodeHandle& nh) :
 	path_move_tol_ = path_move_tol;
 	trajBuilder_.set_path_move_tol_(path_move_tol_);
 	initializePublishers();
+
+	range_1 = dange_range_1;
+	range_2 = dange_range_2;
 
 	//define a halt state; zero speed and spin, and fill with viable coords
 	halt_twist_.linear.x = 0.0;
@@ -121,12 +124,25 @@ void SwarmControl::initializePublishers() {
 
 void SwarmControl::set_init_pose(double x, double y, double psi) {
 	current_pose_1 = trajBuilder_.xyPsi2PoseStamped(x, y, psi);
-	current_pose_2 = trajBuilder_.xyPsi2PoseStamped(x - 1, y, psi);
+	trajBuilder_.ComputeSubpositions(geometry_msgs::PoseStamped current_pose_1,
+			geometry_msgs::PoseStamped &swarm2_posi,
+			geometry_msgs::PoseStamped &swarm3_posi,
+			geometry_msgs::PoseStamped &swarm4_posi,
+			geometry_msgs::PoseStamped &swarm5_posi,
+			geometry_msgs::PoseStamped &swarm6_posi,
+	);
+	curent_pose_2 = swarm2_posi;
+	curent_pose_3 = swarm3_posi;
+	curent_pose_4 = swarm4_posi;
+	curent_pose_5 = swarm5_posi;
+	curent_pose_6 = swarm6_posi;
+
 }
 
-void SwarmControl::swarm_1_obstacles_state(double dist_obst,
+void SwarmControl::swarm_obstacles_state(geometry_msgs::PoseStamped obst_posi,
 		geometry_msgs::PoseStamped robot_pose,
-		std::vector<geometry_msgs::PoseStamped> &vec_of_states) {
+		geometry_msgs::PoseStamped target_posi,
+		std::vector<nav_msgs::Odometry> &vec_of_states) {
 
 	int Num = 200;
 	int c1 = 1.1;
@@ -144,20 +160,8 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 
 	double psi = trajBuilder_.convertPlanarQuat2Psi(
 			robot_pose.pose.orientation);
-	//compute obstacle position
-	geometry_msgs::PoseStamped obst;
-	double obst_x = x_start + dist_obst * cos(psi);
-	double obst_y = y_start + dist_obst * sin(psi);
-	obst.pose.position.x = obst_x;
-	obst.pose.position.y = obst_y;
-	//compute target position
-	geometry_msgs::PoseStamped target;
-	double target_x = obst_x + safe_dist * cos(psi);
-	double target_y = obst_y + safe_dist * sin(psi);
-	target.pose.position.x = target_x;
-	target.pose.position.y = target_y;
 
-	 srand((unsigned)time( NULL ));
+	srand((unsigned) time( NULL));
 
 	std::vector<geometry_msgs::PoseStamped> particle_pose;
 	std::vector<geometry_msgs::PoseStamped> velocity;
@@ -173,24 +177,30 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 	double dy;
 	double temp_evalu;
 
-	int N=999;
+	int N = 999;
 
 	for (int i = 0; i < Num; i++) {
 		//careful
 		temp.pose.position.x = x_start
-				+ (obst_x - x_start) * (rand()%(N+1)/(float)(N+1)) * cos(psi);
+				+ (obst_x - x_start) * (rand() % (N + 1) / (float) (N + 1))
+						* cos(psi);
 		temp.pose.position.y = y_start - y_range * cos(psi)
-				+ (y_start + y_range * cos(psi)) * (rand()%(N+1)/(float)(N+1));
+				+ (y_start + y_range * cos(psi))
+						* (rand() % (N + 1) / (float) (N + 1));
 
-		vel.pose.position.x = x_start + (obst_x - x_start) * (rand()%(N+1)/(float)(N+1)) * cos(psi);
+		vel.pose.position.x = x_start
+				+ (obst_x - x_start) * (rand() % (N + 1) / (float) (N + 1))
+						* cos(psi);
 		vel.pose.position.y = y_start - y_range * cos(psi)
-				+ (y_start + y_range * cos(psi)) * (rand()%(N+1)/(float)(N+1));
+				+ (y_start + y_range * cos(psi))
+						* (rand() % (N + 1) / (float) (N + 1));
 		//screen
 		dx = temp.pose.position.x - obst_x;
 		dy = temp.pose.position.y - obst_y;
 		valid_dist = sqrt(dx * dx + dy * dy);
 
-		temp_evalu = trajBuilder_.ComputeEvaluation(target, obst, temp);
+		temp_evalu = trajBuilder_.ComputeEvaluation(target_posi, obst_posi,
+				temp);
 
 		if (valid_dist > obst_radius) {
 			particle_pose.push_back(temp);
@@ -210,7 +220,8 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 
 	double best_value;
 	for (int i = 1; i < valid_num; i++) {
-		best_value = trajBuilder_.ComputeEvaluation(target, obst, global_best);
+		best_value = trajBuilder_.ComputeEvaluation(target_posi, obst_posi,
+				global_best);
 		if (local_best[i] > best_value)
 			global_best.pose.position.x = particle_pose[i].pose.position.x; ////////////
 		global_best.pose.position.y = particle_pose[i].pose.position.y; ////////////
@@ -218,21 +229,23 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 
 	////main iteration
 	vec_of_states.clear();
-    int counter = 0;
+	int counter = 0;
 	for (int iter = 1; iter < Miter; iter++) {
 		for (int n = 0; n < valid_num; n++) {
 			velocity[n].pose.position.x = w * velocity[n].pose.position.x
-					+ c1 * (rand()%(N+1)/(float)(N+1))
+					+ c1
+							* (rand() % (N + 1) / (float) (N + 1)) //need to be refinded
 							* (local_pose[n].pose.position.x
 									- particle_pose[n].pose.position.x)
-					+ c2 * (rand()%(N+1)/(float)(N+1))
+					+ c2
+							* (rand() % (N + 1) / (float) (N + 1)) //need to be refinded
 							* (global_best.pose.position.x
 									- particle_pose[n].pose.position.x);
 			velocity[n].pose.position.y = w * velocity[n].pose.position.y
-					+ c1 * (rand()%(N+1)/(float)(N+1))
+					+ c1 * (rand() % (N + 1) / (float) (N + 1))
 							* (local_pose[n].pose.position.y
 									- particle_pose[n].pose.position.y)
-					+ c2 * (rand()%(N+1)/(float)(N+1))
+					+ c2 * (rand() % (N + 1) / (float) (N + 1))
 							* (global_best.pose.position.y
 									- particle_pose[n].pose.position.y);
 			particle_pose[n].pose.position.x = particle_pose[n].pose.position.x
@@ -240,7 +253,7 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 			particle_pose[n].pose.position.y = particle_pose[n].pose.position.y
 					+ velocity[n].pose.position.y;
 
-			temp_evalu = trajBuilder_.ComputeEvaluation(target, obst,
+			temp_evalu = trajBuilder_.ComputeEvaluation(target_posi, obst_posi,
 					particle_pose[n]);
 			if (local_best[n] < temp_evalu) { /// update local best
 				local_best[n] = temp_evalu;
@@ -250,7 +263,7 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 						particle_pose[n].pose.position.y;
 			}
 
-			best_value = trajBuilder_.ComputeEvaluation(target, obst,
+			best_value = trajBuilder_.ComputeEvaluation(target_posi, obst_posi,
 					global_best);
 			if (local_best[n] > best_value) {
 				global_best.pose.position.x = local_pose[n].pose.position.x;
@@ -258,11 +271,136 @@ void SwarmControl::swarm_1_obstacles_state(double dist_obst,
 			}
 		}
 
-        counter +=1;
-        if(counter > 10){
-		   vec_of_states.pushback(global_best);
-		   counter =0;
-        }
+		counter += 1;
+		if (counter > 10) {
+			vec_of_states.pushback(global_best);
+			counter = 0;
+		}
 	}
-	vec_of_states.pushback(target.pose);
+	vec_of_states.pushback(target_posi.pose);
 }
+
+void ComputeConsumption(geometry_msgs::PoseStamped swarm1_pose,
+		geometry_msgs::PoseStamped current_swarm2_pose,
+		geometry_msgs::PoseStamped current_swarm3_pose,
+		geometry_msgs::PoseStamped current_swarm4_pose,
+		geometry_msgs::PoseStamped current_swarm5_pose,
+		geometry_msgs::PoseStamped current_swarm6_pose,
+		std::vector<geometry_msgs::PoseStamped> swarm2_obst,
+		std::vector<geometry_msgs::PoseStamped> swarm3_obst,
+		std::vector<geometry_msgs::PoseStamped> swarm4_obst,
+		std::vector<geometry_msgs::PoseStamped> swarm5_obst,
+		std::vector<geometry_msgs::PoseStamped> swarm6_obst,
+		std::vector<double> &swarm2_consump,
+		std::vector<double> &swarm3_consump,
+		std::vector<double> &swarm4_consump,
+		std::vector<double> &swarm5_consump,
+		std::vector<double> &swarm6_consump,
+		) {
+	//get all target position not acoordingly
+trajBuilder_.ComputeSubpositions(geometry_msgs::PoseStamped swarm1_pose,
+		geometry_msgs::PoseStamped &swarm2_posi,
+		geometry_msgs::PoseStamped &swarm3_posi,
+		geometry_msgs::PoseStamped &swarm4_posi,
+		geometry_msgs::PoseStamped &swarm5_posi,
+		geometry_msgs::PoseStamped &swarm6_posi,
+);
+//swarm2 ,notice in order
+double consump = SingleConsumpt(swarm2_posi, current_swarm2_pose,swarm2_obst);
+swarm2_consump.push_back(consump);
+consump = SingleConsumpt(swarm3_posi, current_swarm2_pose,swarm2_obst);
+swarm2_consump.push_back(consump);
+consump = SingleConsumpt(swarm4_posi, current_swarm2_pose,swarm2_obst);
+swarm2_consump.push_back(consump);
+consump = SingleConsumpt(swarm5_posi, current_swarm2_pose,swarm2_obst);
+swarm2_consump.push_back(consump);
+consump = SingleConsumpt(swarm6_posi, current_swarm2_pose,swarm2_obst);
+swarm2_consump.push_back(consump);
+
+//swarm3, notice in order
+consump = SingleConsumpt(swarm2_posi, current_swarm3_pose,swarm3_obst);
+swarm3_consump.push_back(consump);
+consump = SingleConsumpt(swarm3_posi, current_swarm3_pose,swarm3_obst);
+swarm3_consump.push_back(consump);
+consump = SingleConsumpt(swarm4_posi, current_swarm3_pose,swarm3_obst);
+swarm3_consump.push_back(consump);
+consump = SingleConsumpt(swarm5_posi, current_swarm3_pose,swarm3_obst);
+swarm3_consump.push_back(consump);
+consump = SingleConsumpt(swarm6_posi, current_swarm3_pose,swarm3_obst);
+swarm3_consump.push_back(consump);
+
+//swarm4, notice in order
+consump = SingleConsumpt(swarm2_posi, current_swarm4_pose,swarm4_obst);
+swarm4_consump.push_back(consump);
+consump = SingleConsumpt(swarm3_posi, current_swarm4_pose,swarm4_obst);
+swarm4_consump.push_back(consump);
+consump = SingleConsumpt(swarm4_posi, current_swarm4_pose,swarm4_obst);
+swarm4_consump.push_back(consump);
+consump = SingleConsumpt(swarm5_posi, current_swarm4_pose,swarm4_obst);
+swarm4_consump.push_back(consump);
+consump = SingleConsumpt(swarm6_posi, current_swarm4_pose,swarm4_obst);
+swarm4_consump.push_back(consump);
+
+//swarm5, notice in order
+consump = SingleConsumpt(swarm2_posi, current_swarm5_pose,swarm5_obst);
+swarm5_consump.push_back(consump);
+consump = SingleConsumpt(swarm3_posi, current_swarm5_pose,swarm5_obst);
+swarm5_consump.push_back(consump);
+consump = SingleConsumpt(swarm4_posi, current_swarm5_pose,swarm5_obst);
+swarm5_consump.push_back(consump);
+consump = SingleConsumpt(swarm5_posi, current_swarm5_pose,swarm5_obst);
+swarm5_consump.push_back(consump);
+consump = SingleConsumpt(swarm6_posi, current_swarm5_pose,swarm5_obst);
+swarm5_consump.push_back(consump);
+
+//swarm6, notice in order
+consump = SingleConsumpt(swarm2_posi, current_swarm6_pose,swarm6_obst);
+swarm6_consump.push_back(consump);
+consump = SingleConsumpt(swarm3_posi, current_swarm6_pose,swarm6_obst);
+swarm6_consump.push_back(consump);
+consump = SingleConsumpt(swarm4_posi, current_swarm6_pose,swarm6_obst);
+swarm6_consump.push_back(consump);
+consump = SingleConsumpt(swarm5_posi, current_swarm6_pose,swarm6_obst);
+swarm6_consump.push_back(consump);
+consump = SingleConsumpt(swarm6_posi, current_swarm6_pose,swarm6_obst);
+swarm6_consump.push_back(consump);
+}
+
+double SingleConsumpt(geometry_msgs::PoseStamped target,
+	geometry_msgs::PoseStamped robot,
+	std::vector<geometry_msgs::PoseStamped> obstacle) {
+double target_dx = target.pose.position.x - robot.pose.position.x;
+double target_dy = target.pose.position.y - robot.pose.position.y;
+double dist = sqrt(target_dx * target_dx + target_dy * target_dy);
+
+double obst_dx;
+double obst_dy;
+double obst_dist;
+
+double dot_product;
+double mod;
+double dang_angle;
+///ROS_INFO
+double add_consumpt = 0.0;
+double total_consumpt = 0.0;
+int num = obstacle.size();
+
+for (int i = 0; i < num; i++) {
+	obst_dx = obstacle[i].pose.position.x - robot.pose.position.x;
+	obst_dy = obstacle[i].pose.position.y - robot.pose.position.y;
+	obst_dist = sqrt(obst_dx * obst_dx + obst_dy * obst_dy);
+
+	dot_product = target_dx * obst_dx + target_dy * obst_dy;
+	mod = dist * obst_dist;
+	dang_angle = dot_product / mod;
+
+	if (fabs(dang_angle) <= range_1) {  ///symetric for both positive and negative
+		add_consumpt = exp(-fabs(dang_angle)); //¾«¶È  or a Gain
+	} else {
+		add_consumpt = 0;
+	}
+	total_consumpt += add_consumpt;
+}
+return dist + total_consumpt + 1; // for convenience of proba
+}
+
