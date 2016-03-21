@@ -96,9 +96,7 @@ public:
 	void build_point_and_go_traj(geometry_msgs::PoseStamped start_pose,
 			geometry_msgs::PoseStamped end_pose,
 			std::vector<nav_msgs::Odometry> &vec_of_states);
-	double ComputeEvaluation(geometry_msgs::PoseStamped target_posi,
-			geometry_msgs::PoseStamped obst_posi,
-			geometry_msgs::PoseStamped robot_posi);
+	double ComputeEvaluation(geometry_msgs::PoseStamped target_posi, std::vector<geometry_msgs::PoseStamped> obst_posi, geometry_msgs::PoseStamped robot_posi);
 	void ComputeSubpositions(geometry_msgs::PoseStamped swarm1_posi,
 			geometry_msgs::PoseStamped &swarm2_posi,
 			geometry_msgs::PoseStamped &swarm3_posi,

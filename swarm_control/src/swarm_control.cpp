@@ -139,25 +139,21 @@ void SwarmControl::set_init_pose(double x, double y, double psi) {
 
 }
 
-void SwarmControl::swarm_obstacles_state(geometry_msgs::PoseStamped obst_posi,
+void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,
 		geometry_msgs::PoseStamped robot_pose,
 		geometry_msgs::PoseStamped target_posi,
 		std::vector<nav_msgs::Odometry> &vec_of_states) {
 
-	int Num = 200;
-	int c1 = 1.1;
-	int c2 = 1.1;
-	int Miter = 50;
-	double w = 0.7298;
-
-	double obst_radius = 2;
-	double safe_dist = 10;    // still need be to considered
-	double y_range = 5;
+	int Num = 150;
+	double c1 = 0.5;
+	double c2 = 0.5;
+	int Miter = 20;
+	double w = 0.75;
 
 	//initialization
-	double x_start = position.pose.position.x;
-	double y_start = position.pose.position.y;
-
+	double x_start = robot_pose.pose.position.x;
+	double y_start = robot_pose.pose.position.y;
+    //probabily no use
 	double psi = trajBuilder_.convertPlanarQuat2Psi(
 			robot_pose.pose.orientation);
 
@@ -175,39 +171,27 @@ void SwarmControl::swarm_obstacles_state(geometry_msgs::PoseStamped obst_posi,
 
 	double dx;
 	double dy;
+	double dist;
 	double temp_evalu;
 
 	int N = 999;
+	
+	for (int i = 0;i < Num; i++){
+		temp.pose.position.x = x_start;
+		temp.pose.position.y = y_start;
 
-	for (int i = 0; i < Num; i++) {
-		//careful
-		temp.pose.position.x = x_start
-				+ (obst_x - x_start) * (rand() % (N + 1) / (float) (N + 1))
-						* cos(psi);
-		temp.pose.position.y = y_start - y_range * cos(psi)
-				+ (y_start + y_range * cos(psi))
-						* (rand() % (N + 1) / (float) (N + 1));
+        vel.pose.position.x = rand() % (N + 1) / (float) (N + 1);
+        vel.pose.position.y = rand() % (N + 1) / (float) (N + 1);
 
-		vel.pose.position.x = x_start
-				+ (obst_x - x_start) * (rand() % (N + 1) / (float) (N + 1))
-						* cos(psi);
-		vel.pose.position.y = y_start - y_range * cos(psi)
-				+ (y_start + y_range * cos(psi))
-						* (rand() % (N + 1) / (float) (N + 1));
-		//screen
-		dx = temp.pose.position.x - obst_x;
-		dy = temp.pose.position.y - obst_y;
-		valid_dist = sqrt(dx * dx + dy * dy);
+        //then everything should be same
+		particle_pose.push_back(temp);
+		local_pose.push_back(temp); //temprary local best
+
 
 		temp_evalu = trajBuilder_.ComputeEvaluation(target_posi, obst_posi,
 				temp);
-
-		if (valid_dist > obst_radius) {
-			particle_pose.push_back(temp);
-			local_pose.push(temp); //temprary local best
-			local_best.push_back(temp_evalu);
-			velocity.pose.push_back(vel);
-		}
+		local_best.push_back(temp_evalu);
+		velocity.push_back(vel);
 
 	}
 
@@ -218,27 +202,25 @@ void SwarmControl::swarm_obstacles_state(geometry_msgs::PoseStamped obst_posi,
 	global_best.pose.position.x = particle_pose[0].pose.position.x;
 	global_best.pose.position.y = particle_pose[0].pose.position.y;
 
+    //initialize global best
 	double best_value;
 	for (int i = 1; i < valid_num; i++) {
 		best_value = trajBuilder_.ComputeEvaluation(target_posi, obst_posi,
 				global_best);
-		if (local_best[i] > best_value)
-			global_best.pose.position.x = particle_pose[i].pose.position.x; ////////////
+		if (local_best[i] < best_value)
+		global_best.pose.position.x = particle_pose[i].pose.position.x; ////////////
 		global_best.pose.position.y = particle_pose[i].pose.position.y; ////////////
 	}
 
 	////main iteration
 	vec_of_states.clear();
-	int counter = 0;
 	for (int iter = 1; iter < Miter; iter++) {
 		for (int n = 0; n < valid_num; n++) {
 			velocity[n].pose.position.x = w * velocity[n].pose.position.x
-					+ c1
-							* (rand() % (N + 1) / (float) (N + 1)) //need to be refinded
+					+ c1 * (rand() % (N + 1) / (float) (N + 1)) //need to be refinded
 							* (local_pose[n].pose.position.x
 									- particle_pose[n].pose.position.x)
-					+ c2
-							* (rand() % (N + 1) / (float) (N + 1)) //need to be refinded
+					+ c2 * (rand() % (N + 1) / (float) (N + 1)) //need to be refinded
 							* (global_best.pose.position.x
 									- particle_pose[n].pose.position.x);
 			velocity[n].pose.position.y = w * velocity[n].pose.position.y
@@ -255,7 +237,7 @@ void SwarmControl::swarm_obstacles_state(geometry_msgs::PoseStamped obst_posi,
 
 			temp_evalu = trajBuilder_.ComputeEvaluation(target_posi, obst_posi,
 					particle_pose[n]);
-			if (local_best[n] < temp_evalu) { /// update local best
+			if (local_best[n] > temp_evalu) { /// update local best
 				local_best[n] = temp_evalu;
 				local_pose[n].pose.position.x =
 						particle_pose[n].pose.position.x;
@@ -265,19 +247,17 @@ void SwarmControl::swarm_obstacles_state(geometry_msgs::PoseStamped obst_posi,
 
 			best_value = trajBuilder_.ComputeEvaluation(target_posi, obst_posi,
 					global_best);
-			if (local_best[n] > best_value) {
+			if (best_value > local_best[n]) {
 				global_best.pose.position.x = local_pose[n].pose.position.x;
 				global_best.pose.position.y = local_pose[n].pose.position.y;
 			}
 		}
-
-		counter += 1;
-		if (counter > 10) {
-			vec_of_states.pushback(global_best);
-			counter = 0;
-		}
-	}
-	vec_of_states.pushback(target_posi.pose);
+          dx = global_best.pose.position.x - target_posi.pose.position.x;
+          dy = global_best.pose.position.y - target_posi.pose.position.y;
+          dist = sqrt(dx *dx + dy*dy);
+		  if( dist > 1){vec_of_states.pose.push_back(global_best);}  ///careful if it's not pose
+	}	
+	vec_of_states.pose.push_back(target_posi);
 }
 
 void ComputeConsumption(geometry_msgs::PoseStamped swarm1_pose,
@@ -381,8 +361,8 @@ double dot_product;
 double mod;
 double dang_angle;
 ///ROS_INFO
-double add_consumpt = 0.0;
-double total_consumpt = 0.0;
+double add_consumpt;
+double total_consumpt;
 int num = obstacle.size();
 
 for (int i = 0; i < num; i++) {
@@ -404,3 +384,104 @@ for (int i = 0; i < num; i++) {
 return dist + total_consumpt + 1; // for convenience of proba
 }
 
+void DecisionMaker(std::vector<double> swarm2_consump_vec,
+		std::vector<double> swarm3_consump_vec,
+		std::vector<double> swarm4_consump_vec,
+		std::vector<double> swarm5_consump_vec,
+		std::vector<double> swarm6_consump_vec,
+		std::vector<int> &vec_of_decision){
+
+//normalize and change monoton
+//	double delta = max - min;
+	num2 = swarm2_consump_vec.size();
+	for(int i = 0; i < num2; i++){
+//		swarm2_consump_vec[i] = (swarm2_consump_vec[i] - min)/delta; //normalized
+		swarm2_consump_vec[i] = 1/swarm2_consump_vec[i]; //reverse monotonicity
+	}
+
+	num3 = swarm3_consump_vec.size();
+	for(int i = 0; i < num3; i++){
+//		swarm3_consump_vec[i] = (swarm3_consump_vec[i] - min)/delta;
+		swarm3_consump_vec[i] = 1/swarm3_consump_vec[i]; //reverse monotonicity
+	}
+
+	num4 = swarm4_consump_vec.size();
+	for(int i = 0; i < num4; i++){
+//		swarm4_consump_vec[i] = (swarm4_consump_vec[i] - min)/delta;
+		swarm4_consump_vec[i] = 1/swarm4_consump_vec[i]; //reverse monotonicity		
+	}
+
+	num5 = swarm5_consump_vec.size();
+	for(int i = 0; i < num5; i++){
+//		swarm5_consump_vec[i] = (swarm5_consump_vec[i] - min)/delta;
+		swarm5_consump_vec[i] = 1/swarm5_consump_vec[i]; //reverse monotonicity		
+	}	
+
+	num6 = swarm6_consump_vec.size();
+	for(int i = 0; i < num6; i++){
+//		swarm6_consump_vec[i] = (swarm6_consump_vec[i] - min)/delta;
+		swarm6_consump_vec[i] = 1/swarm6_consump_vec[i]; //reverse monotonicity		
+	}	
+ 
+
+    double norm;
+    double proby_2;
+    double proby_3;
+    double proby_4;
+    double proby_5;
+    double proby_6;
+    double Entropy;
+    double BestEntropy = 1000;
+    std::vector<double> vec_of_proby;
+    vec_of_proby.push_back(0.0); //as clear may let core dumpt
+    vec_of_decision.push_back(0);
+
+    for(int i_2 = 0; i_2 < num2; i_2++){
+    	for(int i_3 = 0; i_3 < num3; i_3++){
+            if(i_2 != i_3){
+                for(int i_4 = 0; i_4 < num4; i_4++){
+                    if(i_4 != i_3 && i_4 != i_2){
+                        for(int i_5 = 0; i_5 < num5; i_5++){
+                            if(i_5 != i_4 && i_5 != i_3 && i_5 != i_2){
+                               for(int i_6 = 0; i_6 < num6; i_6++){
+                               	  if(i_6 != i_5 && i_6 != i_4 && i_6 != i_3 && i_6 != i_2){
+                               	  	//normalize
+	                                     norm = sqrt(swarm2_consump_vec[i_2]*swarm2_consump_vec[i_2] + 
+	                                     	swarm3_consump_vec[i_3]*swarm3_consump_vec[i_3] + 
+	                                     	swarm4_consump_vec[i_4]*swarm4_consump_vec[i_4] + 
+	                                     	swarm5_consump_vec[i_5]*swarm5_consump_vec[i_5] + 
+	                                     	swarm6_consump_vec[i_6]*swarm6_consump_vec[i_6]);
+	                                     proby_2 = swarm2_consump_vec[i_2]/norm;
+	                                     proby_3 = swarm3_consump_vec[i_3]/norm;
+	                                     proby_4 = swarm4_consump_vec[i_4]/norm;
+	                                     proby_5 = swarm5_consump_vec[i_5]/norm;
+	                                     proby_6 = swarm6_consump_vec[i_5]/norm;
+                                        Entropy = -(proby_2 * log(proby_2) + proby_3 * log(proby_3) + proby_3 * log(proby_3)
+                                         + proby_4 * log(proby_4) + proby_5 * log(proby_5) + proby_6 * log(proby_6));
+                                        if(Entropy < BestEntropy){   // if not minimal, replace
+                                        	BestEntropy = Entropy;
+                                        	vec_of_proby.clear();
+                                        	vec_of_proby.push_back(swarm2_consump_vec[i_2]);
+                                        	vec_of_proby.push_back(swarm3_consump_vec[i_3]);
+                                        	vec_of_proby.push_back(swarm4_consump_vec[i_4]);
+                                        	vec_of_proby.push_back(swarm5_consump_vec[i_5]);
+                                        	vec_of_proby.push_back(swarm6_consump_vec[i_6]);
+
+                                        	vec_of_decision.clear();
+                                        	vec_of_decision.push_back(i_2 + 2);  ///index is from 0, but our target position is from 2
+                                        	vec_of_decision.push_back(i_3 + 2);
+                                        	vec_of_decision.push_back(i_4 + 2);
+                                        	vec_of_decision.push_back(i_5 + 2);
+                                        	vec_of_decision.push_back(i_6 + 2);
+                                        	
+                                        }
+                               	  }
+                               }
+                            }
+                        }
+                    }
+                }
+            }
+       }
+    }
+}

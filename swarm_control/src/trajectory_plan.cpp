@@ -397,20 +397,26 @@ void TrajBuilder::build_point_and_go_traj(geometry_msgs::PoseStamped start_pose,
 	build_travel_traj(bridge_pose, end_pose, vec_of_states);
 }
 
-double TrajBuilder::ComputeEvaluation(geometry_msgs::PoseStamped target_posi, geometry_msgs::PoseStamped obst_posi, geometry_msgs::PoseStamped robot_posi){
-	   double w1 = 0.7;
-	   double w2 = 0.3;
+double TrajBuilder::ComputeEvaluation(geometry_msgs::PoseStamped target_posi, std::vector<geometry_msgs::PoseStamped> obst_posi, geometry_msgs::PoseStamped robot_posi){
+	   double w1 = 0.5;
+	   double w2 = 0.25;
 
 	   double tar_dx = robot_posi.pose.position.x - target_posi.pose.position.x;
 	   double tar_dy = robot_posi.pose.position.y - target_posi.pose.position.y;
 	   double tar_dist = sqrt(tar_dx * tar_dx + tar_dy * tar_dy);
 
-	   double obs_dx = robot_posi.pose.position.x - obst_posi.pose.position.x;
-	   double obs_dy = robot_posi.pose.position.y - obst_posi.pose.position.y;
-	   double obs_dist = sqrt(obs_dx * obs_dx + obs_dy * obs_dy);
+	   double obs_dx;
+	   double obs_dy;
+	   double obs_dist;
 
-	   double evaluation = w1/obs_dist + w2*tar_dist;
-
+	   double evaluation = w1 * tar_dist;
+       int obst_num = obst_posi.pose.pose.size();
+	   for(int i = 0; i< obst_num; i++){
+		   obs_dx = robot_posi.pose.position.x - obst_posi[i].pose.position.x;
+		   obs_dy = robot_posi.pose.position.y - obst_posi[i].pose.position.y;
+		   obs_dist = sqrt(obs_dx * obs_dx + obs_dy * obs_dy);
+		   evaluation += w2/obs_dist;
+	   }
 	   return evaluation;
 }
 

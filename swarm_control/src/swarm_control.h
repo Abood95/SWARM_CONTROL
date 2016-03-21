@@ -131,12 +131,40 @@ public:
 
     void set_init_pose(double x,double y, double psi);
 
-	void swarm_obstacles_state(geometry_msgs::PoseStamped obst_posi,
+	void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,
 			geometry_msgs::PoseStamped pose,
 			geometry_msgs::PoseStamped target_posi,
 			std::vector<nav_msgs::Odometry> &vec_of_states);
-    void swarm_pub_next_state();
+			
+    double SingleConsumpt(geometry_msgs::PoseStamped target,
+	                       geometry_msgs::PoseStamped robot,
+	      std::vector<geometry_msgs::PoseStamped> obstacle);
+		  
+    void ComputeConsumption(geometry_msgs::PoseStamped swarm1_pose,
+		geometry_msgs::PoseStamped current_swarm2_pose,
+		geometry_msgs::PoseStamped current_swarm3_pose,
+		geometry_msgs::PoseStamped current_swarm4_pose,
+		geometry_msgs::PoseStamped current_swarm5_pose,
+		geometry_msgs::PoseStamped current_swarm6_pose,
+		std::vector<geometry_msgs::PoseStamped> swarm2_obst,
+		std::vector<geometry_msgs::PoseStamped> swarm3_obst,
+		std::vector<geometry_msgs::PoseStamped> swarm4_obst,
+		std::vector<geometry_msgs::PoseStamped> swarm5_obst,
+		std::vector<geometry_msgs::PoseStamped> swarm6_obst,
+		std::vector<double> &swarm2_consump,
+		std::vector<double> &swarm3_consump,
+		std::vector<double> &swarm4_consump,
+		std::vector<double> &swarm5_consump,
+		std::vector<double> &swarm6_consump,
+		);
 
+	void DecisionMaker(std::vector<double> swarm2_consump_vec,
+		std::vector<double> swarm3_consump_vec,
+		std::vector<double> swarm4_consump_vec,
+		std::vector<double> swarm5_consump_vec,
+		std::vector<double> swarm6_consump_vec,
+		std::vector<int> &vec_of_decision);
+		
     void append_path_queue(geometry_msgs::PoseStamped pose) { path_queue_.push(pose); }  
     void append_path_queue(double x, double y, double psi) 
         { path_queue_.push(trajBuilder_.xyPsi2PoseStamped(x,y,psi)); }
