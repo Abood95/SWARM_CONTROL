@@ -398,8 +398,8 @@ void TrajBuilder::build_point_and_go_traj(geometry_msgs::PoseStamped start_pose,
 }
 
 double TrajBuilder::ComputeEvaluation(geometry_msgs::PoseStamped target_posi, std::vector<geometry_msgs::PoseStamped> obst_posi, geometry_msgs::PoseStamped robot_posi){
-	   double w1 = 0.5;
-	   double w2 = 0.25;
+	   double w1 = 1000;
+	   double w2 = 800;
 
 	   double tar_dx = robot_posi.pose.position.x - target_posi.pose.position.x;
 	   double tar_dy = robot_posi.pose.position.y - target_posi.pose.position.y;
