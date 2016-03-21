@@ -42,6 +42,15 @@ private:
     std::vector<nav_msgs::Odometry> des_state_vec_5;
     std::vector<nav_msgs::Odometry> des_state_vec_6;
 
+    std::vector<double> swarm2_consump;
+    std::vector<double> swarm3_consump;
+    std::vector<double> swarm4_consump;
+    std::vector<double> swarm5_consump;
+    std::vector<double> swarm6_consump;
+ 
+    std::vector<int> decision_assign_vector;
+
+
     geometry_msgs::PoseStamped start_pose_1;
     geometry_msgs::PoseStamped start_pose_2;
     geometry_msgs::PoseStamped start_pose_3;
@@ -56,21 +65,20 @@ private:
     geometry_msgs::PoseStamped end_pose_5;
     geometry_msgs::PoseStamped end_pose_6;
 
-    nav_msgs::Odometry des_pose_1;   ///target pose
-    nav_msgs::Odometry des_pose_2;
-    nav_msgs::Odometry des_pose_3;
-    nav_msgs::Odometry des_pose_4;
-    nav_msgs::Odometry des_pose_5;
-    nav_msgs::Odometry des_pose_6;
-
+    geometry_msgs::PoseStamped des_pose_1;   ///target pose
+    geometry_msgs::PoseStamped des_pose_2;
+    geometry_msgs::PoseStamped des_pose_3;
+    geometry_msgs::PoseStamped des_pose_4;
+    geometry_msgs::PoseStamped des_pose_5;
+    geometry_msgs::PoseStamped des_pose_6;
+/*
     nav_msgs::Odometry des_state_1;  ////target state
     nav_msgs::Odometry des_state_2;
     nav_msgs::Odometry des_state_3;
     nav_msgs::Odometry des_state_4;
     nav_msgs::Odometry des_state_5;
     nav_msgs::Odometry des_state_6;
-
-   // nav_msgs::Odometry current_vel_state;
+*/
 
     nav_msgs::Odometry halt_state_1;
     nav_msgs::Odometry halt_state_2;

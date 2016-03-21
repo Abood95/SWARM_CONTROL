@@ -160,7 +160,6 @@ void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,
 
 	std::vector<double> local_best;
 
-
 	double dx;
 	double dy;
 	double dist;
@@ -439,10 +438,10 @@ void DecisionMaker(std::vector<double> swarm2_consump_vec,
                                	  if(i_6 != i_5 && i_6 != i_4 && i_6 != i_3 && i_6 != i_2){
                                	  	//normalize
 	                                     norm = sqrt(swarm2_consump_vec[i_2]*swarm2_consump_vec[i_2] + 
-	                                     	swarm3_consump_vec[i_3]*swarm3_consump_vec[i_3] + 
-	                                     	swarm4_consump_vec[i_4]*swarm4_consump_vec[i_4] + 
-	                                     	swarm5_consump_vec[i_5]*swarm5_consump_vec[i_5] + 
-	                                     	swarm6_consump_vec[i_6]*swarm6_consump_vec[i_6]);
+	                                     swarm3_consump_vec[i_3]*swarm3_consump_vec[i_3] + 
+	                                     swarm4_consump_vec[i_4]*swarm4_consump_vec[i_4] + 
+	                                     swarm5_consump_vec[i_5]*swarm5_consump_vec[i_5] + 
+	                                     swarm6_consump_vec[i_6]*swarm6_consump_vec[i_6]);
 	                                     proby_2 = swarm2_consump_vec[i_2]/norm;
 	                                     proby_3 = swarm3_consump_vec[i_3]/norm;
 	                                     proby_4 = swarm4_consump_vec[i_4]/norm;
@@ -476,4 +475,21 @@ void DecisionMaker(std::vector<double> swarm2_consump_vec,
             }
        }
     }
+
+void get_target_pose(std::vector<int> vec_of_decision,
+	std::vector<geometry_msgs::PoseStamped> vec_of_targets,
+	geometry_msgs::PoseStamped &des_pose_2,
+	geometry_msgs::PoseStamped &des_pose_3,
+	geometry_msgs::PoseStamped &des_pose_4,
+	geometry_msgs::PoseStamped &des_pose_5,
+	geometry_msgs::PoseStamped &des_pose_6){
+    int num = vec_of_decision.size();
+    int num_target = vec_of_targets.size();
+    for (int i = 0; i < num; i++){
+       for (int n = 0; n < num_target; n++){
+       	   
+       }
+    }
+
+}
 }
