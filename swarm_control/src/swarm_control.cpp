@@ -190,8 +190,18 @@ void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,
 
 		temp_evalu = trajBuilder_.ComputeEvaluation(target_posi, obst_posi,
 				temp);
+<<<<<<< HEAD
 		local_best.push_back(temp_evalu);
 		velocity.push_back(vel);
+=======
+
+		if (valid_dist > obst_radius) {
+			particle_pose.push_back(temp);
+			local_pose.push_back(temp); //temprary local best
+			local_best.push_back(temp_evalu);
+			velocity.pose.push_back(vel);
+		}
+>>>>>>> ec706168fe1d246120d8ca08b812fe690c9ed603
 
 	}
 
@@ -252,12 +262,23 @@ void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,
 				global_best.pose.position.y = local_pose[n].pose.position.y;
 			}
 		}
+<<<<<<< HEAD
           dx = global_best.pose.position.x - target_posi.pose.position.x;
           dy = global_best.pose.position.y - target_posi.pose.position.y;
           dist = sqrt(dx *dx + dy*dy);
 		  if( dist > 1){vec_of_states.pose.push_back(global_best);}  ///careful if it's not pose
 	}	
 	vec_of_states.pose.push_back(target_posi);
+=======
+
+		counter += 1;
+		if (counter > 10) {
+			vec_of_states.push_back(global_best);
+			counter = 0;
+		}
+	}
+	vec_of_states.push_back(target_posi.pose);
+>>>>>>> ec706168fe1d246120d8ca08b812fe690c9ed603
 }
 
 void ComputeConsumption(geometry_msgs::PoseStamped swarm1_pose,
@@ -389,8 +410,56 @@ void DecisionMaker(std::vector<double> swarm2_consump_vec,
 		std::vector<double> swarm4_consump_vec,
 		std::vector<double> swarm5_consump_vec,
 		std::vector<double> swarm6_consump_vec,
+<<<<<<< HEAD
 		std::vector<int> &vec_of_decision){
 
+=======
+		std::vector<int> vec_of_decision){
+
+/*get min and max
+	int num = swarm2_consump_vec.size();
+	double min = swarm2_consump_vec[0];
+	double max = swarm2_consump_vec[0];
+	for(int i = 1; i < num; i++){
+        if(min > swarm2_consump_vec[i])
+        	min = swarm2_consump_vec[i];
+        if(max < swarm2_consump_vec[i])
+        	max = swarm2_consump_vec[i];
+	} 
+
+	num = swarm3_consump_vec.size();
+	for(int i = 0; i < num; i++){
+        if(min > swarm3_consump_vec[i])
+        	min = swarm3_consump_vec[i];
+        if(max < swarm3_consump_vec[i])
+        	max = swarm3_consump_vec[i];
+	}
+
+	num = swarm4_consump_vec.size();
+	for(int i = 0; i < num; i++){
+        if(min > swarm4_consump_vec[i])
+        	min = swarm4_consump_vec[i];
+        if(max < swarm4_consump_vec[i])
+        	max = swarm4_consump_vec[i];
+	}
+
+	num = swarm5_consump_vec.size();
+	for(int i = 0; i < num; i++){
+        if(min > swarm5_consump_vec[i])
+        	min = swarm5_consump_vec[i];
+        if(max < swarm5_consump_vec[i])
+        	max = swarm5_consump_vec[i];
+	}
+
+	num = swarm6_consump_vec.size();
+	for(int i = 0; i < num; i++){
+        if(min > swarm6_consump_vec[i])
+        	min = swarm6_consump_vec[i];
+        if(max < swarm6_consump_vec[i])
+        	max = swarm6_consump_vec[i];
+	}	
+*/
+>>>>>>> ec706168fe1d246120d8ca08b812fe690c9ed603
 //normalize and change monoton
 //	double delta = max - min;
 	num2 = swarm2_consump_vec.size();
