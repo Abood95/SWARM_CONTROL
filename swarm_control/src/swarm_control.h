@@ -99,6 +99,7 @@ public:
     std::vector<geometry_msgs::PoseStamped> vec_of_targets_pose;
     std::vector<int> vec_of_decision;
 
+    void set_initial_position(std::vector<double> x_vec, std::vector<double> y_vec);
     void set_des_pose(double x,double y, double psi);
 
 	void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,

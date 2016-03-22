@@ -36,25 +36,6 @@ SwarmControl::SwarmControl(ros::NodeHandle& nh) :
 	halt_twist_.angular.x = 0.0;
 	halt_twist_.angular.y = 0.0;
 	halt_twist_.angular.z = 0.0;
-
-	//initialization
-	current_swarm1_pose = trajBuilder_.xyPsi2PoseStamped(0, 0, 0);
-
-
-	current_swarm2_pose = trajBuilder_.xyPsi2PoseStamped(1, 2, 0);
-
-
-	current_swarm3_pose = trajBuilder_.xyPsi2PoseStamped(2, 2, 0);
-
-
-	current_swarm4_pose = trajBuilder_.xyPsi2PoseStamped(1, 5, 0);
-
-
-	current_swarm5_pose = trajBuilder_.xyPsi2PoseStamped(0,3,0);
-
-
-	current_swarm6_pose = trajBuilder_.xyPsi2PoseStamped(3, 7, 0);
-
 }
 
 //member helper function to set up publishers;
@@ -92,6 +73,25 @@ void SwarmControl::initializePublishers() {
 			> ("robot6/desPsi", 1);
 }
 
+
+/**
+* Initialize initial positions
+*
+*/
+void SwarmControl::set_initial_position(std::vector<double> x_vec, std::vector<double> y_vec) {
+	current_swarm1_pose = trajBuilder_.xyPsi2PoseStamped(x_vec[0], y_vec[0], 0);
+	current_swarm2_pose = trajBuilder_.xyPsi2PoseStamped(x_vec[1], y_vec[1], 0);
+	current_swarm3_pose = trajBuilder_.xyPsi2PoseStamped(x_vec[2], y_vec[2], 0);
+	current_swarm4_pose = trajBuilder_.xyPsi2PoseStamped(x_vec[3], y_vec[3], 0);
+	current_swarm5_pose = trajBuilder_.xyPsi2PoseStamped(x_vec[4], y_vec[4], 0);
+	current_swarm6_pose = trajBuilder_.xyPsi2PoseStamped(x_vec[5], y_vec[5], 0);
+}
+
+
+/**
+* Initialize desired positions
+*
+*/
 void SwarmControl::set_des_pose(double x, double y, double psi) {
 	des_pose_1 = trajBuilder_.xyPsi2PoseStamped(x, y, psi);
 	trajBuilder_.ComputeSubpositions(des_pose_1,
@@ -221,12 +221,13 @@ void SwarmControl::swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped>
 				global_best.pose.position.y = local_pose[n].pose.position.y;
 			}
 		}
-          dx = global_best.pose.position.x - target_posi.pose.position.x;
-          dy = global_best.pose.position.y - target_posi.pose.position.y;
-          dist = sqrt(dx *dx + dy*dy);
-		  if( dist > 1){
-		  des_odom.pose.pose.position = global_best.pose.position;
-		  vec_of_states.push_back(des_odom);}  ///careful 
+		dx = global_best.pose.position.x - target_posi.pose.position.x;
+		dy = global_best.pose.position.y - target_posi.pose.position.y;
+		dist = sqrt(dx *dx + dy*dy);
+		if( dist > 0.01){
+			des_odom.pose.pose.position = global_best.pose.position;
+			vec_of_states.push_back(des_odom);
+		}  ///careful 
 	}	
 	des_odom.pose.pose.position = target_posi.pose.position;
 	vec_of_states.push_back(des_odom);

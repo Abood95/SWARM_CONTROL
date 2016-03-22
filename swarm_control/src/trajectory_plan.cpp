@@ -428,18 +428,18 @@ void TrajBuilder::ComputeSubpositions(geometry_msgs::PoseStamped swarm1_posi,
 		geometry_msgs::PoseStamped &swarm6_posi
 		){
 	//please check if the coordinate is right
-	swarm2_posi.pose.position.x = swarm1_posi.pose.position.x - 1;
-	swarm2_posi.pose.position.y = swarm1_posi.pose.position.y + sqrt(3);
+	swarm2_posi.pose.position.x = swarm1_posi.pose.position.x - 0.01;
+	swarm2_posi.pose.position.y = swarm1_posi.pose.position.y + sqrt(0.03);
 
-	swarm3_posi.pose.position.x = swarm1_posi.pose.position.x - 3;
-	swarm3_posi.pose.position.y = swarm1_posi.pose.position.y + sqrt(3);
+	swarm3_posi.pose.position.x = swarm1_posi.pose.position.x - 0.03;
+	swarm3_posi.pose.position.y = swarm1_posi.pose.position.y + sqrt(0.03);
 
-	swarm4_posi.pose.position.x = swarm1_posi.pose.position.x - 1;
-	swarm4_posi.pose.position.y = swarm1_posi.pose.position.y - sqrt(3);
+	swarm4_posi.pose.position.x = swarm1_posi.pose.position.x - 0.01;
+	swarm4_posi.pose.position.y = swarm1_posi.pose.position.y - sqrt(0.03);
 
-	swarm5_posi.pose.position.x = swarm1_posi.pose.position.x - 3;
-	swarm5_posi.pose.position.y = swarm1_posi.pose.position.y - sqrt(3);
+	swarm5_posi.pose.position.x = swarm1_posi.pose.position.x - 0.03;
+	swarm5_posi.pose.position.y = swarm1_posi.pose.position.y - sqrt(0.03);
 
-	swarm6_posi.pose.position.x = swarm1_posi.pose.position.x - 4;
+	swarm6_posi.pose.position.x = swarm1_posi.pose.position.x - 0.04;
 	swarm6_posi.pose.position.y = swarm1_posi.pose.position.y;
 }
