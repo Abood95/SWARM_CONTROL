@@ -2,416 +2,314 @@
 #include <sensor_msgs/LaserScan.h>
 #include <std_msgs/Float32.h> //Including the Float32 class from std_msgs
 #include <std_msgs/Bool.h> // boolean message 
+#include <swarm_control/obstacles.h>
+#include "swarm_control.h"
+
 //#include <vector>
-
-const double SAFE_DISTANCE = 1.0; //set alarm if anything is within 0.5m of the front of robot
-
+using namespace std;
 // these values to be set within the laser callback
-float ping_dist=5.0; // global var to hold length of a SINGLE LIDAR ping--in front
+// NOT real; callback will have to find this
 
-int ping_index_= -1; // NOT real; callback will have to find this
-
-double angle_min_=0.0;
-double angle_max_=0.0;
-double angle_increment_=0.0;
-double range_min_ = 0.0;
-double range_max_ = 0.0;
-
-bool laser_alarm_1=false;   
-bool laser_alarm_2=false;
-bool laser_alarm_3=false;
-bool laser_alarm_4=false;
-bool laser_alarm_5=false;
-bool laser_alarm_6=false;
- 
-ros::Publisher lidar_alarm_publisher_1;
-ros::Publisher lidar_alarm_publisher_2;
-ros::Publisher lidar_alarm_publisher_3;
-ros::Publisher lidar_alarm_publisher_4;
-ros::Publisher lidar_alarm_publisher_5;
-ros::Publisher lidar_alarm_publisher_6;
-
-ros::Publisher lidar_dist_publisher_1;
-ros::Publisher lidar_dist_publisher_2;
-ros::Publisher lidar_dist_publisher_3;
-ros::Publisher lidar_dist_publisher_4;
-ros::Publisher lidar_dist_publisher_5;
-ros::Publisher lidar_dist_publisher_6;
-
-
-float obstac_dist1;
-float obstac_dist2;
-float obstac_dist3;
-float obstac_dist4;
-float obstac_dist5;
-float obstac_dist6;
-
-int ping_front_min = 0;
-int ping_front_max = 0;
-
-int counter = 0;
-
+std::vector<double> rela_dist1;
+std::vector<double> rela_angle1;
 void laserCallback1(const sensor_msgs::LaserScan& laser_scan1) {
+	    float ping_dist1=5.0; 
+        int ping_index_1= -1; 
 
         ROS_INFO("robot_1 alarm");
-        angle_min_ = laser_scan1.angle_min;
-        angle_max_ = laser_scan1.angle_max;
-        angle_increment_ = laser_scan1.angle_increment;
-        range_min_ = laser_scan1.range_min;
-        range_max_ = laser_scan1.range_max;
+        double angle_min_1 = laser_scan1.angle_min;
+        double angle_max_1 = laser_scan1.angle_max;
+        double angle_increment_1 = laser_scan1.angle_increment;
+        double range_min_1 = laser_scan1.range_min;
+        double range_max_1 = laser_scan1.range_max;
 
-        ping_front_max = (int) (0.6-angle_min_)/angle_increment_;    //-90 degree ping
-        ping_front_min = (int) (-0.6 - angle_min_)/angle_increment_;   
+        double ping_front_max1 = (int) (0.6-angle_min_1)/angle_increment_1;    //-90 degree ping
+        double ping_front_min1 = (int) (-0.6 - angle_min_1)/angle_increment_1;   
 
-        ping_index_ = (int) ((0.0 -angle_min_)/angle_increment_);
-        obstac_dist1 = laser_scan1.ranges[ping_index_]; 
-
-bool front1;
-//front
-     for(ping_index_=ping_front_min;ping_index_<ping_front_max;ping_index_++){
-         ping_dist = laser_scan.ranges[ping_index_];
-         if(ping_dist<SAFE_DISTANCE){
-             counter+=1;
-           }
-        } 
-
-     if(counter>1){ 
-        front1 = true;  
-       }
-     else{
-        front1 = false;
-     }
-     counter = 0;  //clear counter
-     
-
-std_msgs::Bool lidar_alarm_msg1;
-
-    if(front1){
-       ROS_WARN("Obstacles in front");
-       laser_alarm_1=true;  // notice lidar and laser
-       lidar_alarm_msg1.data = laser_alarm_1;
-       lidar_alarm_publisher_1.publish(lidar_alarm_msg1);
-    }
-     else{
-     laser_alarm_1 = false;
-     lidar_alarm_msg1.data = laser_alarm_1;
-     lidar_alarm_publisher_1.publish(lidar_alarm_msg1);
-     }
-
-  //distance message
-   std_msgs::Float32 lidar_dist_msg1;
-   lidar_dist_msg1.data = obstac_dist1;
-   lidar_dist_publisher_1.publish(lidar_dist_msg1);      
+	   double angle1;
+	   for(ping_index_1=ping_front_min1;ping_index_1<ping_front_max1;ping_index_1++){
+		   ping_dist1 = laser_scan1.ranges[ping_index_1];
+		   if(ping_dist1 < range_max_1){
+               rela_dist1.push_back(ping_dist1);
+			   angle1 = ping_index_1 * angle_increment_1 + angle_min_1;
+			   rela_angle1.push_back(angle1);			   
+		   }
+	   }
 }
 
-
+std::vector<double> rela_dist2;
+std::vector<double> rela_angle2;
 void laserCallback2(const sensor_msgs::LaserScan& laser_scan2) {
+	    float ping_dist2=5.0; 
+        int ping_index_2= -1; 
 
         ROS_INFO("robot_2 alarm");
-        angle_min_ = laser_scan2.angle_min;
-        angle_max_ = laser_scan2.angle_max;
-        angle_increment_ = laser_scan2.angle_increment;
-        range_min_ = laser_scan2.range_min;
-        range_max_ = laser_scan2.range_max;
+        double angle_min_2 = laser_scan2.angle_min;
+        double angle_max_2 = laser_scan2.angle_max;
+        double angle_increment_2 = laser_scan2.angle_increment;
+        double range_min_2 = laser_scan2.range_min;
+        double range_max_2 = laser_scan2.range_max;
 
-        ping_front_max = (int) (0.6-angle_min_)/angle_increment_;    //-90 degree ping
-        ping_front_min = (int) (-0.6 - angle_min_)/angle_increment_;    
+        double ping_front_max2 = (int) (0.6-angle_min_2)/angle_increment_2;    //-90 degree ping
+        double ping_front_min2 = (int) (-0.6 - angle_min_2)/angle_increment_2;   
 
-        ping_index_ = (int) ((0.0 -angle_min_)/angle_increment_);
-        obstac_dist2 = laser_scan2.ranges[ping_index_]; 
-
-        bool front2;
-//front
-     for(ping_index_=ping_front_min;ping_index_<ping_front_max;ping_index_++){
-         ping_dist = laser_scan2.ranges[ping_index_];
-         if(ping_dist<SAFE_DISTANCE){
-             counter+=1;
-           }
-        } 
-
-     if(counter>1){ 
-        front2 = true;  
-       }
-     else{
-        front2 = false;
-     }
-     counter = 0;  //clear counter
-     
-
-std_msgs::Bool lidar_alarm_msg2;
-
-    if(front2){
-       ROS_WARN("Obstacles in front");
-       laser_alarm_2=true;  // notice lidar and laser
-       lidar_alarm_msg2.data = laser_alarm_2;
-       lidar_alarm_publisher_2.publish(lidar_alarm_msg2);
-    }
-     else{
-     laser_alarm_2 = false;
-     lidar_alarm_msg2.data = laser_alarm_2;
-     lidar_alarm_publisher_2.publish(lidar_alarm_msg2);
-     }  
-
-   std_msgs::Float32 lidar_dist_msg2;
-   lidar_dist_msg2.data = obstac_dist2;
-   lidar_dist_publisher_2.publish(lidar_dist_msg2);   
+	   double angle2;
+	   for(ping_index_2=ping_front_min2;ping_index_2<ping_front_max2;ping_index_2++){
+		   ping_dist2 = laser_scan2.ranges[ping_index_2];
+		   if(ping_dist2 < range_max_2){
+               rela_dist2.push_back(ping_dist2);
+			   angle2 = ping_index_2 * angle_increment_2 + angle_min_2;
+			   rela_angle2.push_back(angle2);			   
+		   }
+	   }
 }
 
+
+std::vector<double> rela_dist3;
+std::vector<double> rela_angle3;
 void laserCallback3(const sensor_msgs::LaserScan& laser_scan3) {
+	    float ping_dist3=5.0; 
+        int ping_index_3= -1; 
 
         ROS_INFO("robot_3 alarm");
-        angle_min_ = laser_scan3.angle_min;
-        angle_max_ = laser_scan3.angle_max;
-        angle_increment_ = laser_scan3.angle_increment;
-        range_min_ = laser_scan3.range_min;
-        range_max_ = laser_scan3.range_max;
+        double angle_min_3 = laser_scan3.angle_min;
+        double angle_max_3 = laser_scan3.angle_max;
+        double angle_increment_3 = laser_scan3.angle_increment;
+        double range_min_3 = laser_scan3.range_min;
+        double range_max_3 = laser_scan3.range_max;
 
-        ping_front_max = (int) (0.6-angle_min_)/angle_increment_;    //-90 degree ping
-        ping_front_min = (int) (-0.6 - angle_min_)/angle_increment_;    
+        double ping_front_max3 = (int) (0.6-angle_min_3)/angle_increment_3;    //-90 degree ping
+        double ping_front_min3 = (int) (-0.6 - angle_min_3)/angle_increment_3;   
 
-        ping_index_ = (int) ((0.0 -angle_min_)/angle_increment_);
-        obstac_dist3 = laser_scan3.ranges[ping_index_]; 
-
-        bool front3;
-//front
-     for(ping_index_=ping_front_min;ping_index_<ping_front_max;ping_index_++){
-         ping_dist = laser_scan3.ranges[ping_index_];
-         if(ping_dist<SAFE_DISTANCE){
-             counter+=1;
-           }
-        } 
-
-     if(counter>1){ 
-        front3 = true;  
-       }
-     else{
-        front3 = false;
-     }
-     counter = 0;  //clear counter
-     
-
-std_msgs::Bool lidar_alarm_msg3;
-
-    if(front3){
-       ROS_WARN("Obstacles in front");
-       laser_alarm_3=true;  // notice lidar and laser
-       lidar_alarm_msg3.data = laser_alarm_3;
-       lidar_alarm_publisher_3.publish(lidar_alarm_msg3);
-    }
-     else{
-     laser_alarm_3 = false;
-     lidar_alarm_msg3.data = laser_alarm_3;
-     lidar_alarm_publisher_3.publish(lidar_alarm_msg3);
-     }  
-
-   std_msgs::Float32 lidar_dist_msg3;
-   lidar_dist_msg3.data = obstac_dist3;
-   lidar_dist_publisher_3.publish(lidar_dist_msg3);   
+	   double angle3;
+	   for(ping_index_3=ping_front_min3;ping_index_3<ping_front_max3;ping_index_3++){
+		   ping_dist3 = laser_scan3.ranges[ping_index_3];
+		   if(ping_dist3 < range_max_3){
+               rela_dist3.push_back(ping_dist3);
+			   angle3 = ping_index_3 * angle_increment_3 + angle_min_3;
+			   rela_angle3.push_back(angle3);			   
+		   }
+	   }
 }
 
+std::vector<double> rela_dist4;
+std::vector<double> rela_angle4;
 void laserCallback4(const sensor_msgs::LaserScan& laser_scan4) {
+	    float ping_dist4=5.0; 
+        int ping_index_4= -1; 
 
         ROS_INFO("robot_4 alarm");
-        angle_min_ = laser_scan4.angle_min;
-        angle_max_ = laser_scan4.angle_max;
-        angle_increment_ = laser_scan4.angle_increment;
-        range_min_ = laser_scan4.range_min;
-        range_max_ = laser_scan4.range_max;
+        double angle_min_4 = laser_scan4.angle_min;
+        double angle_max_4 = laser_scan4.angle_max;
+        double angle_increment_4 = laser_scan4.angle_increment;
+        double range_min_4 = laser_scan4.range_min;
+        double range_max_4 = laser_scan4.range_max;
 
-        ping_front_max = (int) (0.6-angle_min_)/angle_increment_;    //-90 degree ping
-        ping_front_min = (int) (-0.6 - angle_min_)/angle_increment_;    
+        double ping_front_max4 = (int) (0.6-angle_min_4)/angle_increment_4;    //-90 degree ping
+        double ping_front_min4 = (int) (-0.6 - angle_min_4)/angle_increment_4;   
 
-        ping_index_ = (int) ((0.0 -angle_min_)/angle_increment_);
-        obstac_dist4 = laser_scan4.ranges[ping_index_];
-
-        bool front4; 
-//front
-     for(ping_index_=ping_front_min;ping_index_<ping_front_max;ping_index_++){
-         ping_dist = laser_scan4.ranges[ping_index_];
-         if(ping_dist<SAFE_DISTANCE){
-             counter+=1;
-           }
-        } 
-
-     if(counter>1){ 
-        front4 = true;  
-       }
-     else{
-        front4 = false;
-     }
-     counter = 0;  //clear counter
-     
-
-std_msgs::Bool lidar_alarm_msg4;
-
-    if(front4){
-       ROS_WARN("Obstacles in front");
-       laser_alarm_4=true;  // notice lidar and laser
-       lidar_alarm_msg4.data = laser_alarm_4;
-       lidar_alarm_publisher_4.publish(lidar_alarm_msg4);
-    }
-     else{
-     laser_alarm_4 = false;
-     lidar_alarm_msg4.data = laser_alarm_4;
-     lidar_alarm_publisher_4.publish(lidar_alarm_msg4);
-     }  
-
-   std_msgs::Float32 lidar_dist_msg4;
-   lidar_dist_msg4.data = obstac_dist4;
-   lidar_dist_publisher_4.publish(lidar_dist_msg4);   
+	   double angle4;
+	   for(ping_index_4=ping_front_min4;ping_index_4<ping_front_max4;ping_index_4++){
+		   ping_dist4 = laser_scan4.ranges[ping_index_4];
+		   if(ping_dist4 < range_max_4){
+               rela_dist4.push_back(ping_dist4);
+			   angle4 = ping_index_4 * angle_increment_4 + angle_min_4;
+			   rela_angle4.push_back(angle4);			   
+		   }
+	   }
 }
 
+std::vector<double> rela_dist5;
+std::vector<double> rela_angle5;
 void laserCallback5(const sensor_msgs::LaserScan& laser_scan5) {
+	    float ping_dist5=5.0; 
+        int ping_index_5= -1; 
 
         ROS_INFO("robot_5 alarm");
-        angle_min_ = laser_scan5.angle_min;
-        angle_max_ = laser_scan5.angle_max;
-        angle_increment_ = laser_scan5.angle_increment;
-        range_min_ = laser_scan5.range_min;
-        range_max_ = laser_scan5.range_max;
+        double angle_min_5 = laser_scan5.angle_min;
+        double angle_max_5 = laser_scan5.angle_max;
+        double angle_increment_5 = laser_scan5.angle_increment;
+        double range_min_5 = laser_scan5.range_min;
+        double range_max_5 = laser_scan5.range_max;
 
-        ping_front_max = (int) (0.6-angle_min_)/angle_increment_;    //-90 degree ping
-        ping_front_min = (int) (-0.6 - angle_min_)/angle_increment_;    
+        double ping_front_max5 = (int) (0.6-angle_min_5)/angle_increment_5;    //-90 degree ping
+        double ping_front_min5 = (int) (-0.6 - angle_min_5)/angle_increment_5;   
 
-        ping_index_ = (int) ((0.0 -angle_min_)/angle_increment_);
-        obstac_dist5 = laser_scan5.ranges[ping_index_]; 
-
-bool front5;
-//front
-     for(ping_index_=ping_front_min;ping_index_<ping_front_max;ping_index_++){
-         ping_dist = laser_scan5.ranges[ping_index_];
-         if(ping_dist<SAFE_DISTANCE){
-             counter+=1;
-           }
-        } 
-
-     if(counter>1){ 
-        front5 = true;  
-       }
-     else{
-        front5 = false;
-     }
-     counter = 0;  //clear counter
-     
-
-std_msgs::Bool lidar_alarm_msg5;
-
-    if(front5){
-       ROS_WARN("Obstacles in front");
-       laser_alarm_5=true;  // notice lidar and laser
-       lidar_alarm_msg5.data = laser_alarm_5;
-       lidar_alarm_publisher_5.publish(lidar_alarm_msg5);
-    }
-     else{
-     laser_alarm_5 = false;
-     lidar_alarm_msg5.data = laser_alarm_5;
-     lidar_alarm_publisher_5.publish(lidar_alarm_msg5);
-     }  
-
-   std_msgs::Float32 lidar_dist_msg5;
-   lidar_dist_msg5.data = obstac_dist5;
-   lidar_dist_publisher_5.publish(lidar_dist_msg5);   
+	   double angle5;
+	   for(ping_index_5=ping_front_min5;ping_index_5<ping_front_max5;ping_index_5++){
+		   ping_dist5 = laser_scan5.ranges[ping_index_5];
+		   if(ping_dist5 < range_max_5){
+               rela_dist5.push_back(ping_dist5);
+			   angle5 = ping_index_5 * angle_increment_5 + angle_min_5;
+			   rela_angle5.push_back(angle5);			   
+		   }
+	   }
 }
 
+std::vector<double> rela_dist6;
+std::vector<double> rela_angle6;
 void laserCallback6(const sensor_msgs::LaserScan& laser_scan6) {
+	    float ping_dist6=5.0; 
+        int ping_index_6= -1; 
 
         ROS_INFO("robot_6 alarm");
-        angle_min_ = laser_scan6.angle_min;
-        angle_max_ = laser_scan6.angle_max;
-        angle_increment_ = laser_scan6.angle_increment;
-        range_min_ = laser_scan6.range_min;
-        range_max_ = laser_scan6.range_max;
+        double angle_min_6 = laser_scan6.angle_min;
+        double angle_max_6 = laser_scan6.angle_max;
+        double angle_increment_6 = laser_scan6.angle_increment;
+        double range_min_6 = laser_scan6.range_min;
+        double range_max_6 = laser_scan6.range_max;
 
-        ping_front_max = (int) (0.6-angle_min_)/angle_increment_;    //-90 degree ping
-        ping_front_min = (int) (-0.6 - angle_min_)/angle_increment_;    
+        double ping_front_max6 = (int) (0.6-angle_min_6)/angle_increment_6;    //-90 degree ping
+        double ping_front_min6 = (int) (-0.6 - angle_min_6)/angle_increment_6;   
 
-        ping_index_ = (int) ((0.0 -angle_min_)/angle_increment_);
-        obstac_dist6 = laser_scan6.ranges[ping_index_]; 
-
-bool front6;
-//front
-     for(ping_index_=ping_front_min;ping_index_<ping_front_max;ping_index_++){
-         ping_dist = laser_scan6.ranges[ping_index_];
-         if(ping_dist<SAFE_DISTANCE){
-             counter+=1;
-           }
-        } 
-
-     if(counter>1){ 
-        front6 = true;  
-       }
-     else{
-        front6 = false;
-     }
-     counter = 0;  //clear counter
-     
-
-std_msgs::Bool lidar_alarm_msg6;
-
-    if(front6){
-       ROS_WARN("Obstacles in front");
-       laser_alarm_6=true;  // notice lidar and laser
-       lidar_alarm_msg6.data = laser_alarm_6;
-       lidar_alarm_publisher_6.publish(lidar_alarm_msg6);
-    }
-     else{
-     laser_alarm_6 = false;
-     lidar_alarm_msg6.data = laser_alarm_6;
-     lidar_alarm_publisher_6.publish(lidar_alarm_msg6);
-     }  
-
-   std_msgs::Float32 lidar_dist_msg6;
-   lidar_dist_msg6.data = obstac_dist6;
-   lidar_dist_publisher_6.publish(lidar_dist_msg6);   
+	   double angle6;
+	   for(ping_index_6=ping_front_min6;ping_index_6<ping_front_max6;ping_index_6++){
+		   ping_dist6 = laser_scan6.ranges[ping_index_6];
+		   if(ping_dist6 < range_max_6){
+               rela_dist6.push_back(ping_dist6);
+			   angle6 = ping_index_6 * angle_increment_6 + angle_min_6;
+			   rela_angle6.push_back(angle6);			   
+		   }
+	   }
 }
 
 int main(int argc, char **argv) {
-    ros::init(argc, argv, "new_lidar_alarm"); //name this node
-    ros::NodeHandle nh; 
+    ros::init(argc, argv, "swarm_lidar_alarm"); //name this node
+    ros::NodeHandle n; 
+	
+	SwarmControl SwarmControl(n);
+	SwarmControl.set_init_pose(0,0,0); //x=0, y=0, psi=0
     //create a Subscriber object and have it subscribe to the lidar topic
-    //1
-    ros::Publisher pub1 = nh.advertise<std_msgs::Bool>("lidar_alarm_1", 1);
-    lidar_alarm_publisher_1 = pub1;
-
-    ros::Publisher pub_dist1 = nh.advertise<std_msgs::Bool>("lidar_dist_1", 1);
-    lidar_dist_publisher_1 = pub_dist1;
-
-    //2    
-    ros::Publisher pub2 = nh.advertise<std_msgs::Bool>("lidar_alarm_2", 1);
-    lidar_alarm_publisher_2 = pub2;
-
-    ros::Publisher pub_dist2 = nh.advertise<std_msgs::Bool>("lidar_dist_2", 1);
-    lidar_dist_publisher_2 = pub_dist2; 
-
-    //3
-    ros::Publisher pub3 = nh.advertise<std_msgs::Bool>("lidar_alarm_3", 1);
-    lidar_alarm_publisher_3 = pub3;
-
-    ros::Publisher pub_dist3 = nh.advertise<std_msgs::Bool>("lidar_dist_3", 1);
-    lidar_dist_publisher_3 = pub_dist3;
-
-    //4 
-    ros::Publisher pub4 = nh.advertise<std_msgs::Bool>("lidar_alarm_4", 1);
-    lidar_alarm_publisher_4 = pub4;
-
-    ros::Publisher pub_dist4 = nh.advertise<std_msgs::Bool>("lidar_dist_4", 1);
-    lidar_dist_publisher_4 = pub_dist4; 
-
-    //5
-    ros::Publisher pub5 = nh.advertise<std_msgs::Bool>("lidar_alarm_5", 1);
-    lidar_alarm_publisher_5 = pub5;
-
-    ros::Publisher pub_dist5 = nh.advertise<std_msgs::Bool>("lidar_dist_5", 1);
-    lidar_dist_publisher_5 = pub_dist5; 
-
-    //6
-    ros::Publisher pub6 = nh.advertise<std_msgs::Bool>("lidar_alarm_6", 1);
-    lidar_alarm_publisher_6 = pub6; 
-
-    ros::Publisher pub_dist6 = nh.advertise<std_msgs::Bool>("lidar_dist_6", 1);
-    lidar_dist_publisher_6 = pub_dist6;
-
-
+    ros::ServiceClient client_1 = nh.serviceClient<swarm_control::obstacles>("obsts1");  
+	ros::ServiceClient client_2 = nh.serviceClient<swarm_control::obstacles>("obsts2"); 
+	ros::ServiceClient client_3 = nh.serviceClient<swarm_control::obstacles>("obsts3"); 
+	ros::ServiceClient client_4 = nh.serviceClient<swarm_control::obstacles>("obsts4"); 
+	ros::ServiceClient client_5 = nh.serviceClient<swarm_control::obstacles>("obsts5"); 
+	ros::ServiceClient client_6 = nh.serviceClient<swarm_control::obstacles>("obsts6"); 
+	
+////////////////////////////////////////coordinates   
+	while (!client_1.exists()) {
+      ROS_INFO("waiting for service...");
+      ros::Duration(1.0).sleep();
+    }
+    ROS_INFO("connected client to service1");
+	
+	geometry_msgs::PoseStamped temp_pose = SwarmControl.current_pose_1;
+	double psi = trajBuilder_.convertPlanarQuat2Psi(temp_pose.pose.orientation);
+	int obst_num = rela_dist1.size();
+	double dx;
+	double dy;
+	geometry_msgs::PoseStamped obst_pose1;
+	swarm_control::obstacles swarm_1;
+	for (int i = 0; i < obst_num;i++){
+	    dx = rela_dist1[i] * cos(fabs(psi - rela_angle1[i]));
+	    dy= rela_dist1[i] * sin(psi - rela_angle1[i]);
+	    obst_pose1.pose.position.x = temp_pose.pose.position.x + dx;
+	    obst_pose1.pose.position.y = temp_pose.pose.position.y + dy;
+		swarm_1.request.obst_posi.push_back(obst_pose1);
+	}
+	client_1.call(swarm_1);	
+//////////////	
+	while (!client_2.exists()) {
+      ROS_INFO("waiting for service...");
+      ros::Duration(1.0).sleep();
+    }
+    ROS_INFO("connected client to service2");
+	
+	temp_pose = SwarmControl.current_pose_2;
+	psi = trajBuilder_.convertPlanarQuat2Psi(temp_pose.pose.orientation);
+	obst_num = rela_dist2.size();
+	geometry_msgs::PoseStamped obst_pose2;
+	swarm_control::obstacles swarm_2;
+	for (int i = 0; i < obst_num;i++){
+	    dx = rela_dist2[i] * cos(fabs(psi - rela_angle2[i]));
+	    dy = rela_dist2[i] * sin(psi - rela_angle2[i]);
+	    obst_pose2.pose.position.x = temp_pose.pose.position.x + dx;
+	    obst_pose2.pose.position.y = temp_pose.pose.position.y + dy;
+		swarm_2.request.obst_posi.push_back(obst_pose2);
+	}
+	client_2.call(swarm_2);	
+////////////////////////////	
+ 	while (!client_3.exists()) {
+      ROS_INFO("waiting for service...");
+      ros::Duration(1.0).sleep();
+    }
+    ROS_INFO("connected client to service3");
+	
+    temp_pose = SwarmControl.current_pose_3;
+	psi = trajBuilder_.convertPlanarQuat2Psi(temp_pose.pose.orientation);
+	obst_num = rela_dist3.size();
+	geometry_msgs::PoseStamped obst_pose3;
+	swarm_control::obstacles swarm_3;
+	for (int i = 0; i < obst_num;i++){
+	    dx = rela_dist3[i] * cos(fabs(psi - rela_angle3[i]));
+	    dy = rela_dist3[i] * sin(psi - rela_angle3[i]);
+	    obst_pose3.pose.position.x = temp_pose.pose.position.x + dx;
+	    obst_pose3.pose.position.y = temp_pose.pose.position.y + dy;
+		swarm_3.request.obst_posi.push_back(obst_pose3);
+	}
+	client_3.call(swarm_3);	
+	///////////////////////////////
+ 	while (!client_4.exists()) {
+      ROS_INFO("waiting for service...");
+      ros::Duration(1.0).sleep();
+    }
+    ROS_INFO("connected client to service4");
+	
+    temp_pose = SwarmControl.current_pose_4;
+	psi = trajBuilder_.convertPlanarQuat2Psi(temp_pose.pose.orientation);
+	obst_num = rela_dist4.size();
+	geometry_msgs::PoseStamped obst_pose4;
+	swarm_control::obstacles swarm_4;
+	for (int i = 0; i < obst_num;i++){
+	    dx = rela_dist4[i] * cos(fabs(psi - rela_angle4[i]));
+	    dy = rela_dist4[i] * sin(psi - rela_angle4[i]);
+	    obst_pose4.pose.position.x = temp_pose.pose.position.x + dx;
+	    obst_pose4.pose.position.y = temp_pose.pose.position.y + dy;
+		swarm_4.request.obst_posi.push_back(obst_pose4);
+	}
+	client_4.call(swarm_4);	
+//////////////////	
+ 	while (!client_5.exists()) {
+      ROS_INFO("waiting for service...");
+      ros::Duration(1.0).sleep();
+    }
+    ROS_INFO("connected client to service5");
+	
+    temp_pose = SwarmControl.current_pose_5;
+	psi = trajBuilder_.convertPlanarQuat2Psi(temp_pose.pose.orientation);
+	obst_num = rela_dist5.size();
+	geometry_msgs::PoseStamped obst_pose5;
+	swarm_control::obstacles swarm_5;
+	for (int i = 0; i < obst_num;i++){
+	    dx = rela_dist5[i] * cos(fabs(psi - rela_angle5[i]));
+	    dy = rela_dist5[i] * sin(psi - rela_angle5[i]);
+	    obst_pose5.pose.position.x = temp_pose.pose.position.x + dx;
+	    obst_pose5.pose.position.y = temp_pose.pose.position.y + dy;
+		swarm_5.request.obst_posi.push_back(obst_pose5);
+	}
+	client_5.call(swarm_5);	
+////////////////////////////	
+ 	while (!client_6.exists()) {
+      ROS_INFO("waiting for service...");
+      ros::Duration(1.0).sleep();
+    }
+    ROS_INFO("connected client to service6");
+	
+    temp_pose = SwarmControl.current_pose_6;
+	psi = trajBuilder_.convertPlanarQuat2Psi(temp_pose.pose.orientation);
+	obst_num = rela_dist6.size();
+	geometry_msgs::PoseStamped obst_pose6;
+	swarm_control::obstacles swarm_6;
+	for (int i = 0; i < obst_num;i++){
+	    dx = rela_dist6[i] * cos(fabs(psi - rela_angle6[i]));
+	    dy = rela_dist6[i] * sin(psi - rela_angle6[i]);
+	    obst_pose6.pose.position.x = temp_pose.pose.position.x + dx;
+	    obst_pose6.pose.position.y = temp_pose.pose.position.y + dy;
+		swarm_6.request.obst_posi.push_back(obst_pose6);
+	}
+	client_6.call(swarm_6);	
+	///////////////////////////////////////////////
     ros::Subscriber lidar_subscriber1 = nh.subscribe("/scan1", 1, laserCallback1);
     ros::Subscriber lidar_subscriber2 = nh.subscribe("/scan2", 1, laserCallback2);
     ros::Subscriber lidar_subscriber3 = nh.subscribe("/scan3", 1, laserCallback3);

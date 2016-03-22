@@ -36,6 +36,7 @@ SwarmControl::SwarmControl(ros::NodeHandle& nh) :
 	halt_twist_.angular.y = 0.0;
 	halt_twist_.angular.z = 0.0;
 
+	//initialization
 	current_pose_1 = trajBuilder_.xyPsi2PoseStamped(0, 0, 0);
 	start_pose_1 = current_pose_1;
 	end_pose_1 = current_pose_1;
@@ -43,47 +44,40 @@ SwarmControl::SwarmControl(ros::NodeHandle& nh) :
 	current_des_state_1.pose.pose = current_pose_1.pose;
 	halt_state_1 = current_des_state_1;
 
-	current_pose_2 = trajBuilder_.xyPsi2PoseStamped(0, 0, 0);
+	current_pose_2 = trajBuilder_.xyPsi2PoseStamped(1, 2, 0);
 	start_pose_2 = current_pose_2;
 	end_pose_2 = current_pose_2;
 	current_des_state_2.twist.twist = halt_twist_;
 	current_des_state_2.pose.pose = current_pose_2.pose;
 	halt_state_2 = current_des_state_2;
 
-	current_pose_3 = trajBuilder_.xyPsi2PoseStamped(0, 0, 0);
+	current_pose_3 = trajBuilder_.xyPsi2PoseStamped(2, 2, 0);
 	start_pose_3 = current_pose_3;
 	end_pose_3 = current_pose_3;
 	current_des_state_3.twist.twist = halt_twist_;
 	current_des_state_3.pose.pose = current_pose_3.pose;
 	halt_state_3 = current_des_state_3;
 
-	current_pose_4 = trajBuilder_.xyPsi2PoseStamped(0, 0, 0);
+	current_pose_4 = trajBuilder_.xyPsi2PoseStamped(1, 5, 0);
 	start_pose_4 = current_pose_4;
 	end_pose_4 = current_pose_4;
 	current_des_state_4.twist.twist = halt_twist_;
 	current_des_state_4.pose.pose = current_pose_4.pose;
 	halt_state_4 = current_des_state_4;
 
-	current_pose_5 = trajBuilder_.xyPsi2PoseStamped(0, 0, 0);
+	current_pose_5 = trajBuilder_.xyPsi2PoseStamped(0,3,0);
 	start_pose_5 = current_pose_5;
 	end_pose_5 = current_pose_5;
 	current_des_state_5.twist.twist = halt_twist_;
 	current_des_state_5.pose.pose = current_pose_5.pose;
 	halt_state_5 = current_des_state_5;
 
-	current_pose_6 = trajBuilder_.xyPsi2PoseStamped(0, 0, 0);
+	current_pose_6 = trajBuilder_.xyPsi2PoseStamped(3, 7, 0);
 	start_pose_6 = current_pose_6;
 	end_pose_6 = current_pose_6;
 	current_des_state_6.twist.twist = halt_twist_;
 	current_des_state_6.pose.pose = current_pose_6.pose;
 	halt_state_6 = current_des_state_6;
-
-	alarm1 = false;
-	alarm2 = false;
-	alarm3 = false;
-	alarm4 = false;
-	alarm5 = false;
-	alarm6 = false;
 
 }
 
@@ -122,21 +116,20 @@ void SwarmControl::initializePublishers() {
 			> ("robot6/desPsi", 1);
 }
 
-void SwarmControl::set_init_pose(double x, double y, double psi) {
-	current_pose_1 = trajBuilder_.xyPsi2PoseStamped(x, y, psi);
-	trajBuilder_.ComputeSubpositions(geometry_msgs::PoseStamped current_pose_1,
+void SwarmControl::set_des_pose(double x, double y, double psi) {
+	des_pose_1 = trajBuilder_.xyPsi2PoseStamped(x, y, psi);
+	trajBuilder_.ComputeSubpositions(geometry_msgs::PoseStamped des_pose_1,
 			geometry_msgs::PoseStamped &swarm2_posi,
 			geometry_msgs::PoseStamped &swarm3_posi,
 			geometry_msgs::PoseStamped &swarm4_posi,
 			geometry_msgs::PoseStamped &swarm5_posi,
 			geometry_msgs::PoseStamped &swarm6_posi,
 	);
-	curent_pose_2 = swarm2_posi;
-	curent_pose_3 = swarm3_posi;
-	curent_pose_4 = swarm4_posi;
-	curent_pose_5 = swarm5_posi;
-	curent_pose_6 = swarm6_posi;
-
+	des_pose_2 = swarm2_posi;
+	des_pose_3 = swarm3_posi;
+	des_pose_4 = swarm4_posi;
+	des_pose_5 = swarm5_posi;
+	des_pose_6 = swarm6_posi;
 }
 
 void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,

@@ -1,5 +1,6 @@
 #include "swarm_control.h"
 #include <iostream>
+#include <swarm_control/obstacles.h>
 using namespace std;
 
 bool *alarm_p;
@@ -20,18 +21,21 @@ int main(int argc, char **argv) {
   SwarmControl SwarmControl(nh);
   
   alarm_p1 = &(SwarmControl.alarm1);
-
-  ros::Subscriber sub1 = nh.subscribe("/lidar_alarm_1", 1, alarmCB1);
-
-
+  //maybe try give position vectors back directly
+  ros::ServiceServer service1 = n.advertiseService("obsts1", callback1);
+  ros::ServiceServer service2 = n.advertiseService("obsts2", callback2);
+  ros::ServiceServer service3 = n.advertiseService("obsts3", callback3);
+  ros::ServiceServer service4 = n.advertiseService("obsts4", callback4);
+  ros::ServiceServer service5 = n.advertiseService("obsts5", callback5);
+  ros::ServiceServer service6 = n.advertiseService("obsts6", callback6);
+ 
   ros::Rate looprate(1 / dt); //timer for fixed publication rate
-  SwarmControl.set_init_pose(0,0,0); //x=0, y=0, psi=0
   //put some points in the path queue--hard coded here
-  SwarmControl.append_path_queue(5.0,0.0,0.0);
 
   // main loop; publish a desired state every iteration
   while (ros::ok()) {
-    SwarmControl.pub_next_state();
+	  
+    //SwarmControl.pub_next_state();
 
     ros::spinOnce();
     looprate.sleep(); //sleep for defined sample period, then do loop again

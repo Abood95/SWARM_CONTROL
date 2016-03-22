@@ -35,7 +35,6 @@ private:
     double range_1;
     double range_2;
 
-
     std::vector<nav_msgs::Odometry> des_state_vec_1;
     std::vector<nav_msgs::Odometry> des_state_vec_2;
     std::vector<nav_msgs::Odometry> des_state_vec_3;
@@ -57,19 +56,19 @@ private:
     geometry_msgs::PoseStamped end_pose_5;
     geometry_msgs::PoseStamped end_pose_6;
 
-    nav_msgs::Odometry des_state_1;
+    nav_msgs::Odometry des_pose_1;   ///target pose
+    nav_msgs::Odometry des_pose_2;
+    nav_msgs::Odometry des_pose_3;
+    nav_msgs::Odometry des_pose_4;
+    nav_msgs::Odometry des_pose_5;
+    nav_msgs::Odometry des_pose_6;
+
+    nav_msgs::Odometry des_state_1;  ////target state
     nav_msgs::Odometry des_state_2;
     nav_msgs::Odometry des_state_3;
     nav_msgs::Odometry des_state_4;
     nav_msgs::Odometry des_state_5;
     nav_msgs::Odometry des_state_6;
-
-    nav_msgs::Odometry current_des_state_1;
-    nav_msgs::Odometry current_des_state_2;
-    nav_msgs::Odometry current_des_state_3;
-    nav_msgs::Odometry current_des_state_4;
-    nav_msgs::Odometry current_des_state_5;
-    nav_msgs::Odometry current_des_state_6;
 
    // nav_msgs::Odometry current_vel_state;
 
@@ -88,15 +87,6 @@ private:
     geometry_msgs::PoseStamped current_pose_4;
     geometry_msgs::PoseStamped current_pose_5;
     geometry_msgs::PoseStamped current_pose_6;
-
-    std_msgs::Float64 float_msg_;
-
-    std::queue<geometry_msgs::PoseStamped> path_queue_1;
-    std::queue<geometry_msgs::PoseStamped> path_queue_2;
-    std::queue<geometry_msgs::PoseStamped> path_queue_3;
-    std::queue<geometry_msgs::PoseStamped> path_queue_4;
-    std::queue<geometry_msgs::PoseStamped> path_queue_5;
-    std::queue<geometry_msgs::PoseStamped> path_queue_6;
 
     ros::Publisher desired_state_publisher_1;
     ros::Publisher desired_state_publisher_2;
@@ -121,15 +111,10 @@ private:
 public:
     SwarmControl(ros::NodeHandle& nh);//constructor  
 
-    bool alarm1;
-    bool alarm2;
-    bool alarm3;
-    bool alarm4;
-    bool alarm5;
-    bool alarm6;
 
-
-    void set_init_pose(double x,double y, double psi);
+    void set_des_pose(double x,double y, double psi);
+	
+	void set_current_pose(double x, double y, double psi);
 
 	void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,
 			geometry_msgs::PoseStamped pose,
@@ -165,9 +150,6 @@ public:
 		std::vector<double> swarm6_consump_vec,
 		std::vector<int> &vec_of_decision);
 		
-    void append_path_queue(geometry_msgs::PoseStamped pose) { path_queue_.push(pose); }  
-    void append_path_queue(double x, double y, double psi) 
-        { path_queue_.push(trajBuilder_.xyPsi2PoseStamped(x,y,psi)); }
 };
 
 

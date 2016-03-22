@@ -1,0 +1,6 @@
+#goal definition
+vector<geometry_msgs/PoseStamped> obst_posi
+
+---
+#result definition
+bool status
