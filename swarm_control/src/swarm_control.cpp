@@ -1,4 +1,5 @@
 #include "swarm_control.h"
+
 #include<time.h>
 #include<cstdlib>
 
@@ -37,47 +38,22 @@ SwarmControl::SwarmControl(ros::NodeHandle& nh) :
 	halt_twist_.angular.z = 0.0;
 
 	//initialization
-	current_pose_1 = trajBuilder_.xyPsi2PoseStamped(0, 0, 0);
-	start_pose_1 = current_pose_1;
-	end_pose_1 = current_pose_1;
-	current_des_state_1.twist.twist = halt_twist_;
-	current_des_state_1.pose.pose = current_pose_1.pose;
-	halt_state_1 = current_des_state_1;
+	current_swarm1_pose = trajBuilder_.xyPsi2PoseStamped(0, 0, 0);
 
-	current_pose_2 = trajBuilder_.xyPsi2PoseStamped(1, 2, 0);
-	start_pose_2 = current_pose_2;
-	end_pose_2 = current_pose_2;
-	current_des_state_2.twist.twist = halt_twist_;
-	current_des_state_2.pose.pose = current_pose_2.pose;
-	halt_state_2 = current_des_state_2;
 
-	current_pose_3 = trajBuilder_.xyPsi2PoseStamped(2, 2, 0);
-	start_pose_3 = current_pose_3;
-	end_pose_3 = current_pose_3;
-	current_des_state_3.twist.twist = halt_twist_;
-	current_des_state_3.pose.pose = current_pose_3.pose;
-	halt_state_3 = current_des_state_3;
+	current_swarm2_pose = trajBuilder_.xyPsi2PoseStamped(1, 2, 0);
 
-	current_pose_4 = trajBuilder_.xyPsi2PoseStamped(1, 5, 0);
-	start_pose_4 = current_pose_4;
-	end_pose_4 = current_pose_4;
-	current_des_state_4.twist.twist = halt_twist_;
-	current_des_state_4.pose.pose = current_pose_4.pose;
-	halt_state_4 = current_des_state_4;
 
-	current_pose_5 = trajBuilder_.xyPsi2PoseStamped(0,3,0);
-	start_pose_5 = current_pose_5;
-	end_pose_5 = current_pose_5;
-	current_des_state_5.twist.twist = halt_twist_;
-	current_des_state_5.pose.pose = current_pose_5.pose;
-	halt_state_5 = current_des_state_5;
+	current_swarm3_pose = trajBuilder_.xyPsi2PoseStamped(2, 2, 0);
 
-	current_pose_6 = trajBuilder_.xyPsi2PoseStamped(3, 7, 0);
-	start_pose_6 = current_pose_6;
-	end_pose_6 = current_pose_6;
-	current_des_state_6.twist.twist = halt_twist_;
-	current_des_state_6.pose.pose = current_pose_6.pose;
-	halt_state_6 = current_des_state_6;
+
+	current_swarm4_pose = trajBuilder_.xyPsi2PoseStamped(1, 5, 0);
+
+
+	current_swarm5_pose = trajBuilder_.xyPsi2PoseStamped(0,3,0);
+
+
+	current_swarm6_pose = trajBuilder_.xyPsi2PoseStamped(3, 7, 0);
 
 }
 
@@ -118,21 +94,21 @@ void SwarmControl::initializePublishers() {
 
 void SwarmControl::set_des_pose(double x, double y, double psi) {
 	des_pose_1 = trajBuilder_.xyPsi2PoseStamped(x, y, psi);
-	trajBuilder_.ComputeSubpositions(geometry_msgs::PoseStamped des_pose_1,
-			geometry_msgs::PoseStamped &swarm2_posi,
-			geometry_msgs::PoseStamped &swarm3_posi,
-			geometry_msgs::PoseStamped &swarm4_posi,
-			geometry_msgs::PoseStamped &swarm5_posi,
-			geometry_msgs::PoseStamped &swarm6_posi,
-	);
-	des_pose_2 = swarm2_posi;
-	des_pose_3 = swarm3_posi;
-	des_pose_4 = swarm4_posi;
-	des_pose_5 = swarm5_posi;
-	des_pose_6 = swarm6_posi;
+	trajBuilder_.ComputeSubpositions(des_pose_1,
+			des_pose_2,
+			des_pose_3,
+			des_pose_4,
+			des_pose_5,
+			des_pose_6);
+	vec_of_targets_pose.resize(5);
+	vec_of_targets_pose[0] = des_pose_2;
+	vec_of_targets_pose[1] = des_pose_3;
+	vec_of_targets_pose[2] = des_pose_4;
+	vec_of_targets_pose[3] = des_pose_5;
+	vec_of_targets_pose[4] = des_pose_6;
 }
 
-void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,
+void SwarmControl::swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,
 		geometry_msgs::PoseStamped robot_pose,
 		geometry_msgs::PoseStamped target_posi,
 		std::vector<nav_msgs::Odometry> &vec_of_states) {
@@ -193,6 +169,8 @@ void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,
 	global_best.pose.position.x = particle_pose[0].pose.position.x;
 	global_best.pose.position.y = particle_pose[0].pose.position.y;
 
+
+    nav_msgs::Odometry des_odom;
     //initialize global best
 	double best_value;
 	for (int i = 1; i < valid_num; i++) {
@@ -246,98 +224,84 @@ void swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped> obst_posi,
           dx = global_best.pose.position.x - target_posi.pose.position.x;
           dy = global_best.pose.position.y - target_posi.pose.position.y;
           dist = sqrt(dx *dx + dy*dy);
-		  if( dist > 1){vec_of_states.pose.push_back(global_best);}  ///careful if it's not pose
+		  if( dist > 1){
+		  des_odom.pose.pose.position = global_best.pose.position;
+		  vec_of_states.push_back(des_odom);}  ///careful 
 	}	
-	vec_of_states.pose.push_back(target_posi);
+	des_odom.pose.pose.position = target_posi.pose.position;
+	vec_of_states.push_back(des_odom);
 }
 
-void ComputeConsumption(geometry_msgs::PoseStamped swarm1_pose,
-		geometry_msgs::PoseStamped current_swarm2_pose,
-		geometry_msgs::PoseStamped current_swarm3_pose,
-		geometry_msgs::PoseStamped current_swarm4_pose,
-		geometry_msgs::PoseStamped current_swarm5_pose,
-		geometry_msgs::PoseStamped current_swarm6_pose,
+void SwarmControl::ComputeConsumption(
 		std::vector<geometry_msgs::PoseStamped> swarm2_obst,
 		std::vector<geometry_msgs::PoseStamped> swarm3_obst,
 		std::vector<geometry_msgs::PoseStamped> swarm4_obst,
 		std::vector<geometry_msgs::PoseStamped> swarm5_obst,
-		std::vector<geometry_msgs::PoseStamped> swarm6_obst,
-		std::vector<double> &swarm2_consump,
-		std::vector<double> &swarm3_consump,
-		std::vector<double> &swarm4_consump,
-		std::vector<double> &swarm5_consump,
-		std::vector<double> &swarm6_consump,
+		std::vector<geometry_msgs::PoseStamped> swarm6_obst
 		) {
 	//get all target position not acoordingly
-trajBuilder_.ComputeSubpositions(geometry_msgs::PoseStamped swarm1_pose,
-		geometry_msgs::PoseStamped &swarm2_posi,
-		geometry_msgs::PoseStamped &swarm3_posi,
-		geometry_msgs::PoseStamped &swarm4_posi,
-		geometry_msgs::PoseStamped &swarm5_posi,
-		geometry_msgs::PoseStamped &swarm6_posi,
-);
 //swarm2 ,notice in order
-double consump = SingleConsumpt(swarm2_posi, current_swarm2_pose,swarm2_obst);
+double consump = SingleConsumpt(des_pose_2, current_swarm2_pose,swarm2_obst);
 swarm2_consump.push_back(consump);
-consump = SingleConsumpt(swarm3_posi, current_swarm2_pose,swarm2_obst);
+consump = SingleConsumpt(des_pose_3, current_swarm2_pose,swarm2_obst);
 swarm2_consump.push_back(consump);
-consump = SingleConsumpt(swarm4_posi, current_swarm2_pose,swarm2_obst);
+consump = SingleConsumpt(des_pose_4, current_swarm2_pose,swarm2_obst);
 swarm2_consump.push_back(consump);
-consump = SingleConsumpt(swarm5_posi, current_swarm2_pose,swarm2_obst);
+consump = SingleConsumpt(des_pose_5, current_swarm2_pose,swarm2_obst);
 swarm2_consump.push_back(consump);
-consump = SingleConsumpt(swarm6_posi, current_swarm2_pose,swarm2_obst);
+consump = SingleConsumpt(des_pose_6, current_swarm2_pose,swarm2_obst);
 swarm2_consump.push_back(consump);
 
 //swarm3, notice in order
-consump = SingleConsumpt(swarm2_posi, current_swarm3_pose,swarm3_obst);
+consump = SingleConsumpt(des_pose_2, current_swarm3_pose,swarm3_obst);
 swarm3_consump.push_back(consump);
-consump = SingleConsumpt(swarm3_posi, current_swarm3_pose,swarm3_obst);
+consump = SingleConsumpt(des_pose_3, current_swarm3_pose,swarm3_obst);
 swarm3_consump.push_back(consump);
-consump = SingleConsumpt(swarm4_posi, current_swarm3_pose,swarm3_obst);
+consump = SingleConsumpt(des_pose_4, current_swarm3_pose,swarm3_obst);
 swarm3_consump.push_back(consump);
-consump = SingleConsumpt(swarm5_posi, current_swarm3_pose,swarm3_obst);
+consump = SingleConsumpt(des_pose_5, current_swarm3_pose,swarm3_obst);
 swarm3_consump.push_back(consump);
-consump = SingleConsumpt(swarm6_posi, current_swarm3_pose,swarm3_obst);
+consump = SingleConsumpt(des_pose_6, current_swarm3_pose,swarm3_obst);
 swarm3_consump.push_back(consump);
 
 //swarm4, notice in order
-consump = SingleConsumpt(swarm2_posi, current_swarm4_pose,swarm4_obst);
+consump = SingleConsumpt(des_pose_2, current_swarm4_pose,swarm4_obst);
 swarm4_consump.push_back(consump);
-consump = SingleConsumpt(swarm3_posi, current_swarm4_pose,swarm4_obst);
+consump = SingleConsumpt(des_pose_3, current_swarm4_pose,swarm4_obst);
 swarm4_consump.push_back(consump);
-consump = SingleConsumpt(swarm4_posi, current_swarm4_pose,swarm4_obst);
+consump = SingleConsumpt(des_pose_4, current_swarm4_pose,swarm4_obst);
 swarm4_consump.push_back(consump);
-consump = SingleConsumpt(swarm5_posi, current_swarm4_pose,swarm4_obst);
+consump = SingleConsumpt(des_pose_5, current_swarm4_pose,swarm4_obst);
 swarm4_consump.push_back(consump);
-consump = SingleConsumpt(swarm6_posi, current_swarm4_pose,swarm4_obst);
+consump = SingleConsumpt(des_pose_6, current_swarm4_pose,swarm4_obst);
 swarm4_consump.push_back(consump);
 
 //swarm5, notice in order
-consump = SingleConsumpt(swarm2_posi, current_swarm5_pose,swarm5_obst);
+consump = SingleConsumpt(des_pose_2, current_swarm5_pose,swarm5_obst);
 swarm5_consump.push_back(consump);
-consump = SingleConsumpt(swarm3_posi, current_swarm5_pose,swarm5_obst);
+consump = SingleConsumpt(des_pose_3, current_swarm5_pose,swarm5_obst);
 swarm5_consump.push_back(consump);
-consump = SingleConsumpt(swarm4_posi, current_swarm5_pose,swarm5_obst);
+consump = SingleConsumpt(des_pose_4, current_swarm5_pose,swarm5_obst);
 swarm5_consump.push_back(consump);
-consump = SingleConsumpt(swarm5_posi, current_swarm5_pose,swarm5_obst);
+consump = SingleConsumpt(des_pose_5, current_swarm5_pose,swarm5_obst);
 swarm5_consump.push_back(consump);
-consump = SingleConsumpt(swarm6_posi, current_swarm5_pose,swarm5_obst);
+consump = SingleConsumpt(des_pose_6, current_swarm5_pose,swarm5_obst);
 swarm5_consump.push_back(consump);
 
 //swarm6, notice in order
-consump = SingleConsumpt(swarm2_posi, current_swarm6_pose,swarm6_obst);
+consump = SingleConsumpt(des_pose_2, current_swarm6_pose,swarm6_obst);
 swarm6_consump.push_back(consump);
-consump = SingleConsumpt(swarm3_posi, current_swarm6_pose,swarm6_obst);
+consump = SingleConsumpt(des_pose_3, current_swarm6_pose,swarm6_obst);
 swarm6_consump.push_back(consump);
-consump = SingleConsumpt(swarm4_posi, current_swarm6_pose,swarm6_obst);
+consump = SingleConsumpt(des_pose_4, current_swarm6_pose,swarm6_obst);
 swarm6_consump.push_back(consump);
-consump = SingleConsumpt(swarm5_posi, current_swarm6_pose,swarm6_obst);
+consump = SingleConsumpt(des_pose_5, current_swarm6_pose,swarm6_obst);
 swarm6_consump.push_back(consump);
-consump = SingleConsumpt(swarm6_posi, current_swarm6_pose,swarm6_obst);
+consump = SingleConsumpt(des_pose_6, current_swarm6_pose,swarm6_obst);
 swarm6_consump.push_back(consump);
 }
 
-double SingleConsumpt(geometry_msgs::PoseStamped target,
+double SwarmControl::SingleConsumpt(geometry_msgs::PoseStamped target,
 	geometry_msgs::PoseStamped robot,
 	std::vector<geometry_msgs::PoseStamped> obstacle) {
 double target_dx = target.pose.position.x - robot.pose.position.x;
@@ -375,43 +339,38 @@ for (int i = 0; i < num; i++) {
 return dist + total_consumpt + 1; // for convenience of proba
 }
 
-void DecisionMaker(std::vector<double> swarm2_consump_vec,
-		std::vector<double> swarm3_consump_vec,
-		std::vector<double> swarm4_consump_vec,
-		std::vector<double> swarm5_consump_vec,
-		std::vector<double> swarm6_consump_vec,
-		std::vector<int> &vec_of_decision){
+void SwarmControl::DecisionMaker(){
 
 //normalize and change monoton
 //	double delta = max - min;
-	num2 = swarm2_consump_vec.size();
+	int num2 = swarm2_consump.size();
 	for(int i = 0; i < num2; i++){
 //		swarm2_consump_vec[i] = (swarm2_consump_vec[i] - min)/delta; //normalized
-		swarm2_consump_vec[i] = 1/swarm2_consump_vec[i]; //reverse monotonicity
+		swarm2_consump[i] = 1/swarm2_consump[i]; //reverse monotonicity
 	}
 
-	num3 = swarm3_consump_vec.size();
+	int num3 = swarm3_consump.size();
 	for(int i = 0; i < num3; i++){
 //		swarm3_consump_vec[i] = (swarm3_consump_vec[i] - min)/delta;
-		swarm3_consump_vec[i] = 1/swarm3_consump_vec[i]; //reverse monotonicity
+		swarm3_consump[i] = 1/swarm3_consump[i]; //reverse monotonicity
 	}
 
-	num4 = swarm4_consump_vec.size();
+	int num4 = swarm4_consump.size();
 	for(int i = 0; i < num4; i++){
 //		swarm4_consump_vec[i] = (swarm4_consump_vec[i] - min)/delta;
-		swarm4_consump_vec[i] = 1/swarm4_consump_vec[i]; //reverse monotonicity		
+		swarm4_consump[i] = 1/swarm4_consump[i]; //reverse monotonicity		
 	}
 
-	num5 = swarm5_consump_vec.size();
+	int num5 = swarm5_consump.size();
 	for(int i = 0; i < num5; i++){
 //		swarm5_consump_vec[i] = (swarm5_consump_vec[i] - min)/delta;
-		swarm5_consump_vec[i] = 1/swarm5_consump_vec[i]; //reverse monotonicity		
+		swarm5_consump[i] = 1/swarm5_consump[i]; //reverse monotonicity		
 	}	
 
-	num6 = swarm6_consump_vec.size();
+	int num6 = swarm6_consump.size();
 	for(int i = 0; i < num6; i++){
 //		swarm6_consump_vec[i] = (swarm6_consump_vec[i] - min)/delta;
-		swarm6_consump_vec[i] = 1/swarm6_consump_vec[i]; //reverse monotonicity		
+		swarm6_consump[i] = 1/swarm6_consump[i]; //reverse monotonicity		
 	}	
  
 
@@ -425,8 +384,9 @@ void DecisionMaker(std::vector<double> swarm2_consump_vec,
     double BestEntropy = 1000;
     std::vector<double> vec_of_proby;
     vec_of_proby.push_back(0.0); //as clear may let core dumpt
-    vec_of_decision.push_back(0);
-
+    // vec_of_decision.push_back(0);
+    vec_of_decision.resize(5);
+    
     for(int i_2 = 0; i_2 < num2; i_2++){
     	for(int i_3 = 0; i_3 < num3; i_3++){
             if(i_2 != i_3){
@@ -437,26 +397,26 @@ void DecisionMaker(std::vector<double> swarm2_consump_vec,
                                for(int i_6 = 0; i_6 < num6; i_6++){
                                	  if(i_6 != i_5 && i_6 != i_4 && i_6 != i_3 && i_6 != i_2){
                                	  	//normalize
-	                                     norm = sqrt(swarm2_consump_vec[i_2]*swarm2_consump_vec[i_2] + 
-	                                     swarm3_consump_vec[i_3]*swarm3_consump_vec[i_3] + 
-	                                     swarm4_consump_vec[i_4]*swarm4_consump_vec[i_4] + 
-	                                     swarm5_consump_vec[i_5]*swarm5_consump_vec[i_5] + 
-	                                     swarm6_consump_vec[i_6]*swarm6_consump_vec[i_6]);
-	                                     proby_2 = swarm2_consump_vec[i_2]/norm;
-	                                     proby_3 = swarm3_consump_vec[i_3]/norm;
-	                                     proby_4 = swarm4_consump_vec[i_4]/norm;
-	                                     proby_5 = swarm5_consump_vec[i_5]/norm;
-	                                     proby_6 = swarm6_consump_vec[i_5]/norm;
+	                                     norm = sqrt(swarm2_consump[i_2]*swarm2_consump[i_2] + 
+	                                     swarm3_consump[i_3]*swarm3_consump[i_3] + 
+	                                     swarm4_consump[i_4]*swarm4_consump[i_4] + 
+	                                     swarm5_consump[i_5]*swarm5_consump[i_5] + 
+	                                     swarm6_consump[i_6]*swarm6_consump[i_6]);
+	                                     proby_2 = swarm2_consump[i_2]/norm;
+	                                     proby_3 = swarm3_consump[i_3]/norm;
+	                                     proby_4 = swarm4_consump[i_4]/norm;
+	                                     proby_5 = swarm5_consump[i_5]/norm;
+	                                     proby_6 = swarm6_consump[i_5]/norm;
                                         Entropy = -(proby_2 * log(proby_2) + proby_3 * log(proby_3) + proby_3 * log(proby_3)
                                          + proby_4 * log(proby_4) + proby_5 * log(proby_5) + proby_6 * log(proby_6));
                                         if(Entropy < BestEntropy){   // if not minimal, replace
                                         	BestEntropy = Entropy;
                                         	vec_of_proby.clear();
-                                        	vec_of_proby.push_back(swarm2_consump_vec[i_2]);
-                                        	vec_of_proby.push_back(swarm3_consump_vec[i_3]);
-                                        	vec_of_proby.push_back(swarm4_consump_vec[i_4]);
-                                        	vec_of_proby.push_back(swarm5_consump_vec[i_5]);
-                                        	vec_of_proby.push_back(swarm6_consump_vec[i_6]);
+                                        	vec_of_proby.push_back(swarm2_consump[i_2]);
+                                        	vec_of_proby.push_back(swarm3_consump[i_3]);
+                                        	vec_of_proby.push_back(swarm4_consump[i_4]);
+                                        	vec_of_proby.push_back(swarm5_consump[i_5]);
+                                        	vec_of_proby.push_back(swarm6_consump[i_6]);
 
                                         	vec_of_decision.clear();
                                         	vec_of_decision.push_back(i_2 + 2);  ///index is from 0, but our target position is from 2
@@ -464,6 +424,12 @@ void DecisionMaker(std::vector<double> swarm2_consump_vec,
                                         	vec_of_decision.push_back(i_4 + 2);
                                         	vec_of_decision.push_back(i_5 + 2);
                                         	vec_of_decision.push_back(i_6 + 2);
+
+                                        	des_pose_2 = vec_of_targets_pose[i_2];
+                                        	des_pose_3 = vec_of_targets_pose[i_3];
+                                        	des_pose_4 = vec_of_targets_pose[i_4];
+                                        	des_pose_5 = vec_of_targets_pose[i_5];
+                                        	des_pose_6 = vec_of_targets_pose[i_6];
                                         	
                                         }
                                	  }
@@ -476,20 +442,4 @@ void DecisionMaker(std::vector<double> swarm2_consump_vec,
        }
     }
 
-void get_target_pose(std::vector<int> vec_of_decision,
-	std::vector<geometry_msgs::PoseStamped> vec_of_targets,
-	geometry_msgs::PoseStamped &des_pose_2,
-	geometry_msgs::PoseStamped &des_pose_3,
-	geometry_msgs::PoseStamped &des_pose_4,
-	geometry_msgs::PoseStamped &des_pose_5,
-	geometry_msgs::PoseStamped &des_pose_6){
-    int num = vec_of_decision.size();
-    int num_target = vec_of_targets.size();
-    for (int i = 0; i < num; i++){
-       for (int n = 0; n < num_target; n++){
-       	   
-       }
-    }
-
-}
 }

@@ -102,8 +102,7 @@ public:
 			geometry_msgs::PoseStamped &swarm3_posi,
 			geometry_msgs::PoseStamped &swarm4_posi,
 			geometry_msgs::PoseStamped &swarm5_posi,
-			geometry_msgs::PoseStamped &swarm6_posi,
-			);
+			geometry_msgs::PoseStamped &swarm6_posi);
 
 };
 

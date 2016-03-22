@@ -1,4 +1,4 @@
-#include <trajectory_plan.h>
+#include "trajectory_plan.h"
 
 //constructor: fill in default param values (changeable via "set" fncs)
 TrajBuilder::TrajBuilder()  {
@@ -410,7 +410,7 @@ double TrajBuilder::ComputeEvaluation(geometry_msgs::PoseStamped target_posi, st
 	   double obs_dist;
 
 	   double evaluation = w1 * tar_dist;
-       int obst_num = obst_posi.pose.pose.size();
+       int obst_num = obst_posi.size();
 	   for(int i = 0; i< obst_num; i++){
 		   obs_dx = robot_posi.pose.position.x - obst_posi[i].pose.position.x;
 		   obs_dy = robot_posi.pose.position.y - obst_posi[i].pose.position.y;
@@ -420,12 +420,12 @@ double TrajBuilder::ComputeEvaluation(geometry_msgs::PoseStamped target_posi, st
 	   return evaluation;
 }
 
-void ComputeSubpositions(geometry_msgs::PoseStamped swarm1_posi,
+void TrajBuilder::ComputeSubpositions(geometry_msgs::PoseStamped swarm1_posi,
 		geometry_msgs::PoseStamped &swarm2_posi,
 		geometry_msgs::PoseStamped &swarm3_posi,
 		geometry_msgs::PoseStamped &swarm4_posi,
 		geometry_msgs::PoseStamped &swarm5_posi,
-		geometry_msgs::PoseStamped &swarm6_posi,
+		geometry_msgs::PoseStamped &swarm6_posi
 		){
 	//please check if the coordinate is right
 	swarm2_posi.pose.position.x = swarm1_posi.pose.position.x - 1;
