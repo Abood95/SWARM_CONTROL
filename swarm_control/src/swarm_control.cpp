@@ -43,8 +43,6 @@ SwarmControl::SwarmControl(ros::NodeHandle& nh) :
 void SwarmControl::initializePublishers() {
 	ROS_INFO("Initializing Publishers");
 	
-	geo_twist = nh_.advertise <geometry_msgs::Twist> ("robot1/cmd_vel", 1, true);
-	
 	desired_state_publisher_1 = nh_.advertise < nav_msgs::Odometry
 			> ("robot1/desState", 1, true);
 	des_psi_publisher_1 = nh_.advertise < std_msgs::Float64
@@ -227,7 +225,7 @@ void SwarmControl::swarm_obstacles_state(std::vector<geometry_msgs::PoseStamped>
 		dx = global_best.pose.position.x - target_posi.pose.position.x;
 		dy = global_best.pose.position.y - target_posi.pose.position.y;
 		dist = sqrt(dx *dx + dy*dy);
-		if( dist > 0.01){
+		if( dist > 1){
 			des_odom.pose.pose.position = global_best.pose.position;
 			vec_of_states.push_back(des_odom);
 		}  ///careful 
@@ -445,6 +443,17 @@ void SwarmControl::DecisionMaker(){
             }
        }
     }
+
+
+ int decision_index = 0;
+ int decision_scale = vec_of_decision.size();
+ for (int i = 0; i < decision_scale; i ++) {
+ 	 decision_index = vec_of_decision[i];
+     ROS_INFO("in order from 2 to 6, targets are: %d", decision_index);
+ }
+
+
+
 
 }
 
