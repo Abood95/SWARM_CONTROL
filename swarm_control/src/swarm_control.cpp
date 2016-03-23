@@ -42,6 +42,9 @@ SwarmControl::SwarmControl(ros::NodeHandle& nh) :
 
 void SwarmControl::initializePublishers() {
 	ROS_INFO("Initializing Publishers");
+	
+	geo_twist = nh_.advertise <geometry_msgs::Twist> ("robot1/cmd_vel", 1, true);
+	
 	desired_state_publisher_1 = nh_.advertise < nav_msgs::Odometry
 			> ("robot1/desState", 1, true);
 	des_psi_publisher_1 = nh_.advertise < std_msgs::Float64
@@ -443,4 +446,8 @@ void SwarmControl::DecisionMaker(){
        }
     }
 
+}
+
+void SwarmControl::build_point_and_go(geometry_msgs::PoseStamped start_pose, geometry_msgs::PoseStamped end_pose, std::vector<nav_msgs::Odometry> &vec_states){
+	trajBuilder_.build_point_and_go_traj(start_pose,end_pose,vec_states);
 }

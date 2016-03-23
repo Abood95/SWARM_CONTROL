@@ -64,11 +64,20 @@ temp.pose.position.y = 0;
   swarm_control.swarm_obstacles_state(obst_posi, swarm_control.current_swarm6_pose, swarm_control.des_pose_6,
     swarm_control.des_state_vec_6); //des_state_vec_6  
   // main loop; publish a desired state every iteration
-
-  while (ros::ok()) {   
+  
+  
+  std::vector<nav_msgs::Odometry> vec_of_tran;
+  geometry_msgs::PoseStamped new_temp;
+  new_temp.pose.position = swarm_control.des_state_vec_1[0].pose.position;
+  swarm_control.build_point_and_go(swarm_control.current_swarm1_pose,new_temp,vec_of_tran);
+  for(int i = 0; i < num; i++){
+	  geometry_msgs::Twist g_twist = vec_of_tran[i].twist.twist;
+	  swarm_control.geo_twist.publish(g_twist);
+  }
+ 
+ 
     ros::spinOnce();
     looprate.sleep(); //sleep for defined sample period, then do loop again
-  }
-  return 0;
+
 }
 

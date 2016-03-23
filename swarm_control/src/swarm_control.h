@@ -66,7 +66,8 @@ public:
     ros::Publisher des_psi_publisher_5;
     ros::Publisher des_psi_publisher_6;
 
-
+    ros::Publisher geo_twist;
+	
     TrajBuilder trajBuilder_; 
 
     void initializePublishers();
@@ -119,6 +120,8 @@ public:
 		std::vector<geometry_msgs::PoseStamped> swarm6_obst);
 
     void DecisionMaker();
+	
+	void build_point_and_go(geometry_msgs::PoseStamped start_pose, geometry_msgs::PoseStamped end_pose, std::vector<nav_msgs::Odometry> &vec_states);
 		
 };
 
