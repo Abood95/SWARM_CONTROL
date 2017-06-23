@@ -1,10 +1,18 @@
 # SwarmRoboticsResearch
-To RUN ROS STAGE SIMULATOR:
-'roslaunch multi_navigation multi_navigation_multi_established.launch'
 
-T RUN CONTORL ALORITHM:
-'rosrun multi_navigation multi_navigation_with_swarm_control2'
+#Dependencies:
 
-#Results are in:
-https://www.youtube.com/watch?v=3sVpSj3pNY4
-https://www.youtube.com/watch?v=BTvcwrlutu8&t=20s
+Navigation kit: sudo apt-get ros-indigo-navigation
+
+
+- To start simulation platform:
+
+`roslaunch multi_navigation multi_navigation_establish.launch`
+
+- To get ready for desired trajectory:
+
+'roslaunch multi_navigation multi_navigation_send_goal.launch'
+
+-To start controller:
+
+`rosrun swarm_control_algorithm swarm_control_algorithm_main`

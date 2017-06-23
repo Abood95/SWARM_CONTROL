@@ -15,8 +15,6 @@ int main(int argc, char **argv) {
     // instantiate a desired-state publisher object
     SwarmControlAlgorithm swarm_control_algorithm;
 
-    ROS_INFO("here 1");
-
     std::vector<double> x_vec;
     std::vector<double> y_vec;
     x_vec.resize(6);
@@ -34,13 +32,9 @@ int main(int argc, char **argv) {
     x_vec[5] = 0;   //6
     y_vec[5] = 4;
 
-    ROS_INFO("here 2");
-        
     swarm_control_algorithm.set_initial_position(x_vec, y_vec);
 
     swarm_control_algorithm.set_target_position(10.0, 10.0, 0.0);
-
-    ROS_INFO("here 3");
 
     // obstacle positions
     geometry_msgs::PoseStamped temp;
@@ -56,20 +50,12 @@ int main(int argc, char **argv) {
         obstacles[i].push_back(temp);
     }
 
-    ROS_INFO("here 4");
-
     swarm_control_algorithm.ComputeConsumption(obstacles);
-
-    ROS_INFO("here 5");
 
     swarm_control_algorithm.DecisionMaker();   //give corresponding targets
 
-    ROS_INFO("here 6");
-
     // swarm
     swarm_control_algorithm.swarm_obstacles_state(obst_posi);
-
-    ROS_INFO("here 7");
 
     std::vector< std::vector<nav_msgs::Odometry> > des_state;
     int max_size = 0;
@@ -100,9 +86,6 @@ int main(int argc, char **argv) {
     } 
 
     ROS_INFO("swarm_control_algorithm ends here ...");
-
-    // ********************************************************************************************************************************
-
     return 0;
 }
 
